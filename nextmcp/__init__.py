@@ -67,6 +67,13 @@ from nextmcp.transport import (
     invoke_remote_tool,
 )
 
+# Plugins
+from nextmcp.plugins import (
+    Plugin,
+    PluginManager,
+    PluginMetadata,
+)
+
 # Define public API
 __all__ = [
     # Version
@@ -106,4 +113,8 @@ __all__ = [
     "WebSocketClient",
     "WSMessage",
     "invoke_remote_tool",
+    # Plugins
+    "Plugin",
+    "PluginManager",
+    "PluginMetadata",
 ]

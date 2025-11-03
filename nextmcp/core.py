@@ -3,7 +3,7 @@ Core NextMCP class that wraps FastMCP and provides tool registration,
 middleware support, and server lifecycle management.
 """
 
-from typing import Callable, Dict, List, Any, Optional
+from typing import Callable, Dict, List, Any, Optional, Type
 import logging
 import inspect
 import asyncio
@@ -41,6 +41,7 @@ class NextMCP:
         self._tools: Dict[str, Callable] = {}
         self._global_middleware: List[Callable] = []
         self._fastmcp_server = None
+        self._plugin_manager = None
 
         logger.info(f"Initializing NextMCP application: {self.name}")
 
@@ -116,6 +117,77 @@ class NextMCP:
             Dictionary mapping tool names to their wrapped functions
         """
         return self._tools.copy()
+
+    @property
+    def plugins(self):
+        """
+        Get the plugin manager for this application.
+
+        Lazily initializes the plugin manager on first access.
+
+        Returns:
+            PluginManager instance
+
+        Example:
+            app = NextMCP("my-app")
+            app.plugins.discover_plugins("./plugins")
+            app.plugins.load_all()
+        """
+        if self._plugin_manager is None:
+            from nextmcp.plugins import PluginManager
+            self._plugin_manager = PluginManager(self)
+        return self._plugin_manager
+
+    def use_plugin(self, plugin) -> None:
+        """
+        Register and load a plugin.
+
+        Args:
+            plugin: Either a Plugin class or Plugin instance
+
+        Example:
+            from my_plugins import WeatherPlugin
+            app.use_plugin(WeatherPlugin)
+        """
+        from nextmcp.plugins import Plugin
+
+        if isinstance(plugin, type) and issubclass(plugin, Plugin):
+            # It's a class, register it
+            self.plugins.register_plugin_class(plugin)
+        elif isinstance(plugin, Plugin):
+            # It's an instance, register it
+            self.plugins.register_plugin(plugin)
+        else:
+            raise TypeError("plugin must be a Plugin class or instance")
+
+        # Load the plugin
+        self.plugins.load_plugin(plugin.name if isinstance(plugin, Plugin) else plugin.name)
+        logger.info(f"Loaded plugin: {plugin.name if isinstance(plugin, Plugin) else plugin.name}")
+
+    def discover_plugins(self, directory: str) -> None:
+        """
+        Discover plugins from a directory.
+
+        Args:
+            directory: Path to directory containing plugin files
+
+        Example:
+            app = NextMCP("my-app")
+            app.discover_plugins("./plugins")
+            # Plugins are discovered but not loaded yet
+        """
+        self.plugins.discover_plugins(directory)
+
+    def load_plugins(self) -> None:
+        """
+        Load all discovered plugins.
+
+        Example:
+            app = NextMCP("my-app")
+            app.discover_plugins("./plugins")
+            app.load_plugins()
+        """
+        self.plugins.load_all()
 
     def run(self, host: str = "127.0.0.1", port: int = 8000, **kwargs):
         """

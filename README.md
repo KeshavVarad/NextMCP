@@ -366,6 +366,165 @@ async def main():
 
 See `examples/websocket_chat/` for a complete WebSocket application.
 
+## Plugin System
+
+NextMCP features a powerful plugin system that allows you to extend functionality through modular, reusable components.
+
+### What are Plugins?
+
+Plugins are self-contained modules that can:
+- Register new tools with your application
+- Add middleware for cross-cutting concerns
+- Extend core functionality
+- Be easily shared and reused across projects
+
+### Creating a Plugin
+
+```python
+from nextmcp import Plugin
+
+class MathPlugin(Plugin):
+    name = "math-plugin"
+    version = "1.0.0"
+    description = "Mathematical operations"
+    author = "Your Name"
+
+    def on_load(self, app):
+        @app.tool()
+        def add(a: float, b: float) -> float:
+            """Add two numbers"""
+            return a + b
+
+        @app.tool()
+        def multiply(a: float, b: float) -> float:
+            """Multiply two numbers"""
+            return a * b
+```
+
+### Using Plugins
+
+#### Method 1: Auto-discovery
+
+```python
+from nextmcp import NextMCP
+
+app = NextMCP("my-app")
+
+# Discover all plugins in a directory
+app.discover_plugins("./plugins")
+
+# Load all discovered plugins
+app.load_plugins()
+```
+
+#### Method 2: Direct Loading
+
+```python
+from nextmcp import NextMCP
+from my_plugins import MathPlugin
+
+app = NextMCP("my-app")
+
+# Load a specific plugin
+app.use_plugin(MathPlugin)
+```
+
+### Plugin Lifecycle
+
+Plugins have three lifecycle hooks:
+
+1. **`on_init()`** - Called during plugin initialization
+2. **`on_load(app)`** - Called when plugin is loaded (register tools here)
+3. **on_unload()** - Called when plugin is unloaded (cleanup)
+
+```python
+class LifecyclePlugin(Plugin):
+    name = "lifecycle-example"
+    version = "1.0.0"
+
+    def on_init(self):
+        # Early initialization
+        self.config = {}
+
+    def on_load(self, app):
+        # Register tools and middleware
+        @app.tool()
+        def my_tool():
+            return "result"
+
+    def on_unload(self):
+        # Cleanup resources
+        self.config.clear()
+```
+
+### Plugin with Middleware
+
+```python
+class TimingPlugin(Plugin):
+    name = "timing"
+    version = "1.0.0"
+
+    def on_load(self, app):
+        import time
+
+        def timing_middleware(fn):
+            def wrapper(*args, **kwargs):
+                start = time.time()
+                result = fn(*args, **kwargs)
+                elapsed = (time.time() - start) * 1000
+                print(f"⏱️ {fn.__name__} took {elapsed:.2f}ms")
+                return result
+            return wrapper
+
+        app.add_middleware(timing_middleware)
+```
+
+### Plugin Dependencies
+
+Plugins can declare dependencies on other plugins:
+
+```python
+class DependentPlugin(Plugin):
+    name = "advanced-math"
+    version = "1.0.0"
+    dependencies = ["math-plugin"]  # Loads math-plugin first
+
+    def on_load(self, app):
+        @app.tool()
+        def factorial(n: int) -> int:
+            # Can use tools from math-plugin
+            return 1 if n <= 1 else n * factorial(n - 1)
+```
+
+### Managing Plugins
+
+```python
+# List all loaded plugins
+for plugin in app.plugins.list_plugins():
+    print(f"{plugin['name']} v{plugin['version']} - {plugin['loaded']}")
+
+# Get a specific plugin
+plugin = app.plugins.get_plugin("math-plugin")
+
+# Unload a plugin
+app.plugins.unload_plugin("math-plugin")
+
+# Check if plugin is loaded
+if "math-plugin" in app.plugins:
+    print("Math plugin is available")
+```
+
+### Plugin Best Practices
+
+1. **Use descriptive names** - Make plugin names clear and unique
+2. **Version semantically** - Follow semver (major.minor.patch)
+3. **Document thoroughly** - Add descriptions and docstrings
+4. **Handle errors gracefully** - Catch exceptions in lifecycle hooks
+5. **Declare dependencies** - List required plugins explicitly
+6. **Implement cleanup** - Use `on_unload()` to release resources
+
+See `examples/plugin_example/` for a complete plugin demonstration with multiple plugin types.
+
 ## CLI Commands
 
 NextMCP provides a rich CLI for common development tasks.
@@ -407,6 +566,7 @@ Check out the `examples/` directory for complete working examples:
 - **weather_bot** - A weather information server with multiple tools
 - **async_weather_bot** - Async version demonstrating concurrent operations and async middleware
 - **websocket_chat** - Real-time chat server using WebSocket transport
+- **plugin_example** - Plugin system demonstration with multiple plugin types
 
 ## Development
 
@@ -474,6 +634,7 @@ NextMCP builds on FastMCP to provide:
 | Async/await support | ❌ | ✅ Full support |
 | WebSocket transport | ❌ | ✅ Built-in |
 | Middleware | ❌ | Global + tool-specific |
+| Plugin system | ❌ | ✅ Full-featured |
 | CLI commands | ❌ | `init`, `run`, `docs` |
 | Project scaffolding | ❌ | Templates & examples |
 | Configuration management | ❌ | YAML + .env support |
@@ -485,7 +646,7 @@ NextMCP builds on FastMCP to provide:
 
 - [x] Async tool support
 - [x] WebSocket transport
-- [ ] Plugin system
+- [x] Plugin system
 - [ ] Built-in monitoring and metrics
 - [ ] Production deployment guides
 - [ ] Docker support
