@@ -27,7 +27,7 @@ class MetricsCollector:
             registry: Metrics registry to use (default: global registry)
             prefix: Prefix for all metric names
         """
-        self.registry = registry or get_registry()
+        self.registry = registry if registry is not None else get_registry()
         self.prefix = prefix
 
     def counter(
