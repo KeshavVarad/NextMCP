@@ -42,6 +42,8 @@ class NextMCP:
         self._global_middleware: List[Callable] = []
         self._fastmcp_server = None
         self._plugin_manager = None
+        self._metrics_collector = None
+        self._metrics_enabled = False
 
         logger.info(f"Initializing NextMCP application: {self.name}")
 
@@ -65,7 +67,8 @@ class NextMCP:
             app.add_middleware(log_calls)
         """
         self._global_middleware.append(middleware_fn)
-        logger.debug(f"Added global middleware: {middleware_fn.__name__}")
+        middleware_name = getattr(middleware_fn, "__name__", middleware_fn.__class__.__name__)
+        logger.debug(f"Added global middleware: {middleware_name}")
 
     def tool(self, name: Optional[str] = None, description: Optional[str] = None):
         """
@@ -188,6 +191,108 @@ class NextMCP:
             app.load_plugins()
         """
         self.plugins.load_all()
+
+    @property
+    def metrics(self):
+        """
+        Get the metrics collector for this application.
+
+        Lazily initializes the metrics collector on first access.
+
+        Returns:
+            MetricsCollector instance
+
+        Example:
+            app = NextMCP("my-app")
+            counter = app.metrics.counter("my_counter")
+            counter.inc()
+        """
+        if self._metrics_collector is None:
+            from nextmcp.metrics import MetricsCollector
+            self._metrics_collector = MetricsCollector(prefix=self.name)
+        return self._metrics_collector
+
+    def enable_metrics(
+        self,
+        collect_tool_metrics: bool = True,
+        collect_system_metrics: bool = False,
+        collect_transport_metrics: bool = False,
+        labels: Optional[Dict[str, str]] = None,
+    ) -> None:
+        """
+        Enable automatic metrics collection.
+
+        Adds metrics middleware to collect tool invocation metrics.
+
+        Args:
+            collect_tool_metrics: Collect metrics for tool invocations
+            collect_system_metrics: Collect system metrics (CPU, memory, etc.)
+            collect_transport_metrics: Collect transport-level metrics
+            labels: Optional labels to add to all metrics
+
+        Example:
+            app = NextMCP("my-app")
+            app.enable_metrics()
+
+            @app.tool()
+            def my_tool():
+                return "result"
+        """
+        from nextmcp.metrics import MetricsConfig, metrics_middleware
+
+        config = MetricsConfig(
+            enabled=True,
+            collect_tool_metrics=collect_tool_metrics,
+            collect_system_metrics=collect_system_metrics,
+            collect_transport_metrics=collect_transport_metrics,
+            labels=labels or {},
+        )
+
+        # Add metrics middleware
+        middleware = metrics_middleware(collector=self.metrics, config=config)
+        self.add_middleware(middleware)
+
+        self._metrics_enabled = True
+        logger.info(f"Metrics enabled for {self.name}")
+
+    def get_metrics_prometheus(self) -> str:
+        """
+        Get metrics in Prometheus format.
+
+        Returns:
+            String containing Prometheus-formatted metrics
+
+        Example:
+            app = NextMCP("my-app")
+            app.enable_metrics()
+            prometheus_data = app.get_metrics_prometheus()
+        """
+        from nextmcp.metrics.exporters import PrometheusExporter
+        from nextmcp.metrics.registry import get_registry
+
+        exporter = PrometheusExporter(get_registry())
+        return exporter.export()
+
+    def get_metrics_json(self, pretty: bool = True) -> str:
+        """
+        Get metrics in JSON format.
+
+        Args:
+            pretty: If True, format with indentation
+
+        Returns:
+            JSON string containing all metrics
+
+        Example:
+            app = NextMCP("my-app")
+            app.enable_metrics()
+            json_data = app.get_metrics_json()
+        """
+        from nextmcp.metrics.exporters import JSONExporter
+        from nextmcp.metrics.registry import get_registry
+
+        exporter = JSONExporter(get_registry())
+        return exporter.export(pretty=pretty)
 
     def run(self, host: str = "127.0.0.1", port: int = 8000, **kwargs):
         """

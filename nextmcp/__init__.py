@@ -74,6 +74,19 @@ from nextmcp.plugins import (
     PluginMetadata,
 )
 
+# Metrics
+from nextmcp.metrics import (
+    Counter,
+    Gauge,
+    Histogram,
+    Summary,
+    MetricsCollector,
+    MetricsRegistry,
+    get_registry,
+    MetricsConfig,
+    metrics_middleware,
+)
+
 # Define public API
 __all__ = [
     # Version
@@ -117,4 +130,14 @@ __all__ = [
     "Plugin",
     "PluginManager",
     "PluginMetadata",
+    # Metrics
+    "Counter",
+    "Gauge",
+    "Histogram",
+    "Summary",
+    "MetricsCollector",
+    "MetricsRegistry",
+    "get_registry",
+    "MetricsConfig",
+    "metrics_middleware",
 ]

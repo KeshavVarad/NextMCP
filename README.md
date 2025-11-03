@@ -525,6 +525,153 @@ if "math-plugin" in app.plugins:
 
 See `examples/plugin_example/` for a complete plugin demonstration with multiple plugin types.
 
+## Metrics & Monitoring
+
+NextMCP includes a built-in metrics system for monitoring your MCP applications in production.
+
+### Quick Start
+
+```python
+from nextmcp import NextMCP
+
+app = NextMCP("my-app")
+app.enable_metrics()  # That's it! Automatic metrics collection
+
+@app.tool()
+def my_tool():
+    return "result"
+```
+
+### Automatic Metrics
+
+When metrics are enabled, NextMCP automatically tracks:
+
+- **`tool_invocations_total`** - Total number of tool invocations
+- **`tool_duration_seconds`** - Histogram of tool execution times
+- **`tool_completed_total`** - Completed invocations by status (success/error)
+- **`tool_errors_total`** - Errors by error type
+- **`tool_active_invocations`** - Currently executing tools
+
+All metrics include labels for the tool name and any global labels you configure.
+
+### Custom Metrics
+
+Add your own metrics for business logic:
+
+```python
+@app.tool()
+def process_order(order_id: int):
+    # Custom counter
+    app.metrics.inc_counter("orders_processed")
+
+    # Custom gauge
+    app.metrics.set_gauge("current_queue_size", get_queue_size())
+
+    # Custom histogram with timer
+    with app.metrics.time_histogram("processing_duration"):
+        result = process(order_id)
+
+    return result
+```
+
+### Metric Types
+
+#### Counter
+Monotonically increasing value. Use for: counts, totals.
+
+```python
+counter = app.metrics.counter("requests_total")
+counter.inc()  # Increment by 1
+counter.inc(5)  # Increment by 5
+```
+
+#### Gauge
+Value that can go up or down. Use for: current values, temperatures, queue sizes.
+
+```python
+gauge = app.metrics.gauge("active_connections")
+gauge.set(10)  # Set to specific value
+gauge.inc()    # Increment
+gauge.dec()    # Decrement
+```
+
+#### Histogram
+Distribution of values. Use for: durations, sizes.
+
+```python
+histogram = app.metrics.histogram("request_duration_seconds")
+histogram.observe(0.25)
+
+# Or use as timer
+with app.metrics.time_histogram("duration"):
+    # Code to time
+    pass
+```
+
+### Exporting Metrics
+
+#### Prometheus Format
+
+```python
+# Get metrics in Prometheus format
+prometheus_data = app.get_metrics_prometheus()
+print(prometheus_data)
+```
+
+Output:
+```
+# HELP my-app_tool_invocations_total Total tool invocations
+# TYPE my-app_tool_invocations_total counter
+my-app_tool_invocations_total{tool="my_tool"} 42.0
+
+# HELP my-app_tool_duration_seconds Tool execution duration
+# TYPE my-app_tool_duration_seconds histogram
+my-app_tool_duration_seconds_bucket{tool="my_tool",le="0.005"} 10
+my-app_tool_duration_seconds_bucket{tool="my_tool",le="0.01"} 25
+my-app_tool_duration_seconds_sum{tool="my_tool"} 1.234
+my-app_tool_duration_seconds_count{tool="my_tool"} 42
+```
+
+#### JSON Format
+
+```python
+# Get metrics as JSON
+json_data = app.get_metrics_json(pretty=True)
+```
+
+### Configuration
+
+```python
+app.enable_metrics(
+    collect_tool_metrics=True,      # Track tool invocations
+    collect_system_metrics=False,   # Track CPU/memory (future)
+    collect_transport_metrics=False, # Track WebSocket/HTTP (future)
+    labels={"env": "prod", "region": "us-west"}  # Global labels
+)
+```
+
+### Metrics with Labels
+
+Labels allow you to slice and dice your metrics:
+
+```python
+counter = app.metrics.counter(
+    "api_requests",
+    labels={"method": "GET", "endpoint": "/users"}
+)
+counter.inc()
+```
+
+### Integration with Monitoring Systems
+
+The Prometheus format is compatible with:
+- Prometheus for scraping and storage
+- Grafana for visualization
+- AlertManager for alerting
+- Any Prometheus-compatible system
+
+See `examples/metrics_example/` for a complete metrics demonstration.
+
 ## CLI Commands
 
 NextMCP provides a rich CLI for common development tasks.
@@ -567,6 +714,7 @@ Check out the `examples/` directory for complete working examples:
 - **async_weather_bot** - Async version demonstrating concurrent operations and async middleware
 - **websocket_chat** - Real-time chat server using WebSocket transport
 - **plugin_example** - Plugin system demonstration with multiple plugin types
+- **metrics_example** - Metrics and monitoring demonstration with automatic and custom metrics
 
 ## Development
 
@@ -635,6 +783,7 @@ NextMCP builds on FastMCP to provide:
 | WebSocket transport | ❌ | ✅ Built-in |
 | Middleware | ❌ | Global + tool-specific |
 | Plugin system | ❌ | ✅ Full-featured |
+| Metrics & monitoring | ❌ | ✅ Built-in |
 | CLI commands | ❌ | `init`, `run`, `docs` |
 | Project scaffolding | ❌ | Templates & examples |
 | Configuration management | ❌ | YAML + .env support |
@@ -647,7 +796,7 @@ NextMCP builds on FastMCP to provide:
 - [x] Async tool support
 - [x] WebSocket transport
 - [x] Plugin system
-- [ ] Built-in monitoring and metrics
+- [x] Built-in monitoring and metrics
 - [ ] Production deployment guides
 - [ ] Docker support
 - [ ] More example projects
