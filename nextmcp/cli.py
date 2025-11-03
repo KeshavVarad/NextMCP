@@ -114,7 +114,7 @@ if app:
                 console.print(f"[red]Error:[/red] {e}")
             else:
                 print(f"Error: {e}")
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from e
 
     @app.command()
     def run(
@@ -174,7 +174,7 @@ if app:
                 console.print(f"[red]Error:[/red] {e}")
             else:
                 print(f"Error: {e}")
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from e
 
     @app.command()
     def docs(
@@ -263,7 +263,7 @@ if app:
                 console.print(f"[red]Error:[/red] {e}")
             else:
                 print(f"Error: {e}")
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from e
 
     @app.command()
     def version():

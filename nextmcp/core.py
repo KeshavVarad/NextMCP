@@ -311,7 +311,7 @@ class NextMCP:
         except ImportError:
             raise ImportError(
                 "FastMCP is required to run the server. " "Install it with: pip install fastmcp"
-            )
+            ) from None
 
         logger.info(f"Starting {self.name} on {host}:{port}")
         logger.info(f"Registered {len(self._tools)} tool(s)")

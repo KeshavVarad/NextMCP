@@ -158,9 +158,9 @@ class WebSocketClient:
         try:
             result = await asyncio.wait_for(future, timeout=timeout)
             return result
-        except asyncio.TimeoutError:
+        except asyncio.TimeoutError as e:
             self._pending_requests.pop(request_id, None)
-            raise Exception(f"Request timeout after {timeout}s")
+            raise Exception(f"Request timeout after {timeout}s") from e
 
     async def _wait_for_message(self, message_id: str, timeout: float = 5.0) -> Any:
         """Wait for a specific message by ID."""
@@ -170,9 +170,9 @@ class WebSocketClient:
         try:
             result = await asyncio.wait_for(future, timeout=timeout)
             return result
-        except asyncio.TimeoutError:
+        except asyncio.TimeoutError as e:
             self._pending_requests.pop(message_id, None)
-            raise Exception(f"Timeout waiting for message: {message_id}")
+            raise Exception(f"Timeout waiting for message: {message_id}") from e
 
     async def list_tools(self) -> Dict[str, Any]:
         """

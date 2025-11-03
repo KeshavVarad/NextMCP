@@ -115,7 +115,8 @@ class Plugin(ABC):
 
         Override this to add cleanup logic.
         """
-        pass
+        # Default implementation: no cleanup needed
+        return
 
     def on_init(self) -> None:
         """
@@ -123,7 +124,8 @@ class Plugin(ABC):
 
         Override this for early setup that doesn't require the app.
         """
-        pass
+        # Default implementation: no initialization needed
+        return
 
     @property
     def is_loaded(self) -> bool:

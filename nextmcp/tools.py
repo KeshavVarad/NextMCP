@@ -69,7 +69,7 @@ def tool(
                     return fn(*args, **validated_input.model_dump())
                 except ValidationError as e:
                     logger.error(f"Validation error in {fn.__name__}: {e}")
-                    raise ValueError(f"Invalid input: {e}")
+                    raise ValueError(f"Invalid input: {e}") from e
 
             # Preserve metadata on wrapped function
             validated_wrapper._tool_schema = schema

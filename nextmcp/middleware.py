@@ -190,7 +190,7 @@ def validate_inputs(**validators):
                         logger.error(
                             f"[VALIDATION] {tool_name} - Validation failed for {param_name}: {e}"
                         )
-                        raise ValueError(f"Validation failed for {param_name}: {e}")
+                        raise ValueError(f"Validation failed for {param_name}: {e}") from e
 
             return fn(*args, **kwargs)
 
@@ -522,9 +522,9 @@ def timeout_async(seconds: int):
             try:
                 result = await asyncio.wait_for(fn(*args, **kwargs), timeout=seconds)
                 return result
-            except asyncio.TimeoutError:
+            except asyncio.TimeoutError as e:
                 logger.error(f"[TIMEOUT] {tool_name} - Exceeded {seconds}s timeout")
-                raise TimeoutError(f"Tool {tool_name} exceeded {seconds} second timeout")
+                raise TimeoutError(f"Tool {tool_name} exceeded {seconds} second timeout") from e
 
         return wrapper
 
