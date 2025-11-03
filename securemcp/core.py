@@ -5,6 +5,8 @@ middleware support, and server lifecycle management.
 
 from typing import Callable, Dict, List, Any, Optional
 import logging
+import inspect
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +71,7 @@ class SecureMCP:
         Decorator to register a function as an MCP tool.
 
         Global middleware will be automatically applied to the tool in the order
-        it was added.
+        it was added. Supports both sync and async functions.
 
         Args:
             name: Optional custom name for the tool (defaults to function name)
@@ -79,9 +81,14 @@ class SecureMCP:
             @app.tool()
             def get_weather(city: str) -> dict:
                 return {"city": city, "temp": 72}
+
+            @app.tool()
+            async def get_async_weather(city: str) -> dict:
+                return {"city": city, "temp": 72}
         """
         def decorator(fn: Callable) -> Callable:
             tool_name = name or fn.__name__
+            is_async = inspect.iscoroutinefunction(fn)
 
             # Apply global middleware in order (first added wraps first, last added = outermost)
             wrapped_fn = fn
@@ -92,9 +99,10 @@ class SecureMCP:
             wrapped_fn._tool_name = tool_name
             wrapped_fn._tool_description = description or fn.__doc__
             wrapped_fn._original_fn = fn
+            wrapped_fn._is_async = is_async
 
             self._tools[tool_name] = wrapped_fn
-            logger.debug(f"Registered tool: {tool_name}")
+            logger.debug(f"Registered {'async' if is_async else 'sync'} tool: {tool_name}")
 
             return wrapped_fn
 
