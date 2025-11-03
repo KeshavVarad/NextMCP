@@ -224,9 +224,7 @@ class WebSocketClient:
 
 
 # Convenience function for quick tool invocation
-async def invoke_remote_tool(
-    uri: str, tool_name: str, params: dict[str, Any] | None = None
-) -> Any:
+async def invoke_remote_tool(uri: str, tool_name: str, params: dict[str, Any] | None = None) -> Any:
     """
     Convenience function to invoke a tool on a remote server.
 

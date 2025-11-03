@@ -20,9 +20,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-def tool(
-    schema: type | None = None, name: str | None = None, description: str | None = None
-):
+def tool(schema: type | None = None, name: str | None = None, description: str | None = None):
     """
     Standalone decorator for defining tools with optional schema validation.
 
