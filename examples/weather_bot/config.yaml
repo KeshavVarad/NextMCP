@@ -1,0 +1,13 @@
+# Weather Bot Configuration
+
+# Server settings
+host: "127.0.0.1"
+port: 8000
+
+# Logging
+log_level: "INFO"
+debug: false
+
+# Custom settings for weather bot
+default_units: "fahrenheit"
+max_forecast_days: 7
