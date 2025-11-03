@@ -79,6 +79,9 @@ addopts = [
     "--strict-config",
     "-ra",
 ]
+markers = [
+    "asyncio: marks tests as async (using pytest-asyncio)",
+]
 
 [tool.black]
 line-length = 100

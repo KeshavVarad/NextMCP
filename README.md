@@ -8,6 +8,7 @@ SecureMCP is a Python SDK built on top of FastMCP that provides a developer-frie
 
 - **Minimal Boilerplate** - Get started with just a few lines of code
 - **Decorator-based API** - Register tools with simple `@app.tool()` decorators
+- **Async Support** - Full support for async/await with async tools and middleware
 - **Global & Tool-specific Middleware** - Add logging, auth, rate limiting, caching, and more
 - **Rich CLI** - Scaffold projects, run servers, and generate docs with `mcp` commands
 - **Configuration Management** - Support for `.env`, YAML config files, and environment variables
@@ -149,6 +150,100 @@ SecureMCP includes several production-ready middleware:
 - **`validate_inputs(**validators)`** - Custom input validation
 - **`timeout(seconds)`** - Execution timeout
 
+All middleware also have async variants (e.g., `log_calls_async`, `error_handler_async`, etc.) for use with async tools.
+
+### Async Support
+
+SecureMCP has full support for async/await patterns, allowing you to build high-performance tools that can handle concurrent I/O operations.
+
+#### Basic Async Tool
+
+```python
+from securemcp import SecureMCP
+import asyncio
+
+app = SecureMCP("async-app")
+
+@app.tool()
+async def fetch_data(url: str) -> dict:
+    """Fetch data from an API asynchronously"""
+    # Use async libraries like httpx, aiohttp, etc.
+    await asyncio.sleep(0.1)  # Simulate API call
+    return {"url": url, "data": "fetched"}
+```
+
+#### Async Middleware
+
+Use async middleware variants for async tools:
+
+```python
+from securemcp import log_calls_async, error_handler_async, cache_results_async
+
+app.add_middleware(log_calls_async)
+app.add_middleware(error_handler_async)
+
+@app.tool()
+@cache_results_async(ttl_seconds=300)
+async def expensive_async_operation(param: str) -> dict:
+    await asyncio.sleep(1)  # Simulate expensive operation
+    return {"result": param}
+```
+
+#### Concurrent Operations
+
+The real power of async is handling multiple operations concurrently:
+
+```python
+@app.tool()
+async def fetch_multiple_sources(sources: list) -> dict:
+    """Fetch data from multiple sources concurrently"""
+    async def fetch_one(source: str):
+        # Each fetch happens concurrently, not sequentially
+        await asyncio.sleep(0.1)
+        return {"source": source, "data": "..."}
+
+    # Gather results concurrently - much faster than sequential!
+    results = await asyncio.gather(*[fetch_one(s) for s in sources])
+    return {"sources": results}
+```
+
+**Performance Comparison:**
+- Sequential: 4 sources × 0.1s = 0.4s
+- Concurrent (async): ~0.1s (all at once!)
+
+#### Mixed Sync and Async Tools
+
+You can have both sync and async tools in the same application:
+
+```python
+@app.tool()
+def sync_tool(x: int) -> int:
+    """Regular synchronous tool"""
+    return x * 2
+
+@app.tool()
+async def async_tool(x: int) -> int:
+    """Async tool for I/O operations"""
+    await asyncio.sleep(0.1)
+    return x * 3
+```
+
+#### When to Use Async
+
+**Use async for:**
+- HTTP API calls (with `httpx`, `aiohttp`)
+- Database queries (with `asyncpg`, `motor`)
+- File I/O operations
+- Multiple concurrent operations
+- WebSocket connections
+
+**Stick with sync for:**
+- CPU-bound operations (heavy computations)
+- Simple operations with no I/O
+- When third-party libraries don't support async
+
+See `examples/async_weather_bot/` for a complete async example.
+
 ### Schema Validation with Pydantic
 
 ```python
@@ -240,6 +335,7 @@ mcp version
 Check out the `examples/` directory for complete working examples:
 
 - **weather_bot** - A weather information server with multiple tools
+- **async_weather_bot** - Async version demonstrating concurrent operations and async middleware
 
 ## Development
 
@@ -304,6 +400,7 @@ SecureMCP builds on FastMCP to provide:
 |---------|---------|-----------|
 | Basic MCP server | ✅ | ✅ |
 | Tool registration | Manual | Decorator-based |
+| Async/await support | ❌ | ✅ Full support |
 | Middleware | ❌ | Global + tool-specific |
 | CLI commands | ❌ | `init`, `run`, `docs` |
 | Project scaffolding | ❌ | Templates & examples |
@@ -314,7 +411,7 @@ SecureMCP builds on FastMCP to provide:
 
 ## Roadmap
 
-- [ ] Async tool support
+- [x] Async tool support
 - [ ] WebSocket transport
 - [ ] Plugin system
 - [ ] Built-in monitoring and metrics

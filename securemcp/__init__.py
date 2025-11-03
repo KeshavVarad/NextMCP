@@ -50,6 +50,13 @@ from securemcp.middleware import (
     validate_inputs,
     cache_results,
     timeout,
+    # Async middleware
+    log_calls_async,
+    require_auth_async,
+    error_handler_async,
+    rate_limit_async,
+    cache_results_async,
+    timeout_async,
 )
 
 # Define public API
@@ -79,4 +86,11 @@ __all__ = [
     "validate_inputs",
     "cache_results",
     "timeout",
+    # Async middleware
+    "log_calls_async",
+    "require_auth_async",
+    "error_handler_async",
+    "rate_limit_async",
+    "cache_results_async",
+    "timeout_async",
 ]
