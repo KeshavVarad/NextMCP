@@ -308,8 +308,10 @@ class TestMetricsCollector:
             time.sleep(0.01)
 
         histogram = collector.histogram("duration")
-        # Should have at least one observation
-        assert histogram.get_count() >= 1
+        # Should have exactly one observation from the context manager
+        assert histogram.get_count() == 1
+        # Duration should be at least what we slept
+        assert histogram.get_sum() >= 0.01
 
     def test_get_all_metrics(self):
         registry = MetricsRegistry()
@@ -342,8 +344,14 @@ class TestMetricsMiddleware:
         result = test_tool()
         assert result == "result"
 
-        # Middleware should wrap the function correctly
-        assert callable(test_tool)
+        # Check that middleware created metrics
+        metrics = registry.list_metrics()
+        metric_names = [m.name for m in metrics]
+
+        # Should have invocation, duration, and completed metrics
+        assert any("invocations" in name for name in metric_names)
+        assert any("duration" in name for name in metric_names)
+        assert any("completed" in name for name in metric_names)
 
     def test_middleware_tracks_success(self):
         registry = MetricsRegistry()
@@ -359,10 +367,16 @@ class TestMetricsMiddleware:
         result = test_tool()
         assert result == "success"
 
-        # Check that metrics were created
+        # Check that completed metric shows success
         metrics = registry.list_metrics()
-        # At minimum we should have some metrics
-        assert len(metrics) >= 0  # Middleware creates metrics asynchronously
+        completed_metrics = [m for m in metrics if "completed" in m.name and "status" in str(m.labels)]
+
+        # Should have at least one completed metric
+        assert len(completed_metrics) > 0
+
+        # Check that at least one has success status
+        success_metrics = [m for m in completed_metrics if m.labels.get("status") == "success"]
+        assert len(success_metrics) > 0
 
     def test_middleware_tracks_errors(self):
         registry = MetricsRegistry()
@@ -379,9 +393,17 @@ class TestMetricsMiddleware:
         with pytest.raises(ValueError, match="test error"):
             test_tool()
 
-        # Middleware should have tracked the error
-        # (metrics exist in registry)
-        assert len(registry.list_metrics()) >= 0
+        # Check that error metrics were created
+        metrics = registry.list_metrics()
+        error_metrics = [m for m in metrics if "errors" in m.name]
+
+        # Should have error counter
+        assert len(error_metrics) > 0
+
+        # Check that completed metric shows error status
+        completed_metrics = [m for m in metrics if "completed" in m.name and "status" in str(m.labels)]
+        error_completed = [m for m in completed_metrics if m.labels.get("status") == "error"]
+        assert len(error_completed) > 0
 
     def test_middleware_disabled(self):
         registry = MetricsRegistry()
@@ -417,8 +439,13 @@ class TestMetricsMiddleware:
         result = await test_tool()
         assert result == "result"
 
-        # Middleware should wrap async functions correctly
-        assert asyncio.iscoroutinefunction(test_tool)
+        # Check that middleware created metrics for async tool
+        metrics = registry.list_metrics()
+        metric_names = [m.name for m in metrics]
+
+        # Should have metrics just like sync tools
+        assert any("invocations" in name for name in metric_names)
+        assert any("duration" in name for name in metric_names)
 
 
 # Test Exporters
