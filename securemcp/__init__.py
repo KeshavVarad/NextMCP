@@ -59,6 +59,14 @@ from securemcp.middleware import (
     timeout_async,
 )
 
+# Transport
+from securemcp.transport import (
+    WebSocketTransport,
+    WebSocketClient,
+    WSMessage,
+    invoke_remote_tool,
+)
+
 # Define public API
 __all__ = [
     # Version
@@ -93,4 +101,9 @@ __all__ = [
     "rate_limit_async",
     "cache_results_async",
     "timeout_async",
+    # Transport
+    "WebSocketTransport",
+    "WebSocketClient",
+    "WSMessage",
+    "invoke_remote_tool",
 ]

@@ -9,6 +9,7 @@ SecureMCP is a Python SDK built on top of FastMCP that provides a developer-frie
 - **Minimal Boilerplate** - Get started with just a few lines of code
 - **Decorator-based API** - Register tools with simple `@app.tool()` decorators
 - **Async Support** - Full support for async/await with async tools and middleware
+- **WebSocket Transport** - Real-time bidirectional communication for interactive applications
 - **Global & Tool-specific Middleware** - Add logging, auth, rate limiting, caching, and more
 - **Rich CLI** - Scaffold projects, run servers, and generate docs with `mcp` commands
 - **Configuration Management** - Support for `.env`, YAML config files, and environment variables
@@ -34,6 +35,9 @@ pip install securemcp[config]
 
 # Schema validation with Pydantic
 pip install securemcp[schema]
+
+# WebSocket transport
+pip install securemcp[websocket]
 
 # Everything
 pip install securemcp[all]
@@ -296,6 +300,72 @@ MCP_PORT=8080
 API_KEY=my-secret-key
 ```
 
+### WebSocket Transport
+
+SecureMCP supports WebSocket transport for real-time, bidirectional communication - perfect for chat applications, live updates, and interactive tools.
+
+#### Server Setup
+
+```python
+from securemcp import SecureMCP
+from securemcp.transport import WebSocketTransport
+
+app = SecureMCP("websocket-server")
+
+@app.tool()
+async def send_message(username: str, message: str) -> dict:
+    return {
+        "status": "sent",
+        "username": username,
+        "message": message
+    }
+
+# Create WebSocket transport
+transport = WebSocketTransport(app)
+
+# Run on ws://localhost:8765
+transport.run(host="0.0.0.0", port=8765)
+```
+
+#### Client Usage
+
+```python
+from securemcp.transport import WebSocketClient
+
+async def main():
+    async with WebSocketClient("ws://localhost:8765") as client:
+        # List available tools
+        tools = await client.list_tools()
+        print(f"Available tools: {tools}")
+
+        # Invoke a tool
+        result = await client.invoke_tool(
+            "send_message",
+            {"username": "Alice", "message": "Hello!"}
+        )
+        print(f"Result: {result}")
+```
+
+#### WebSocket Features
+
+- **Real-time Communication**: Persistent connections with low latency
+- **Bidirectional**: Server can push updates to clients
+- **JSON-RPC Protocol**: Clean message format for tool invocation
+- **Multiple Clients**: Handle multiple concurrent connections
+- **Async Native**: Built on Python's async/await for high performance
+
+#### When to Use WebSocket vs HTTP
+
+| Feature | HTTP (FastMCP) | WebSocket |
+|---------|----------------|-----------|
+| Connection type | One per request | Persistent |
+| Latency | Higher overhead | Lower latency |
+| Bidirectional | No | Yes |
+| Use case | Traditional APIs | Real-time apps |
+| Best for | Request/response | Chat, notifications, live data |
+
+See `examples/websocket_chat/` for a complete WebSocket application.
+
 ## CLI Commands
 
 SecureMCP provides a rich CLI for common development tasks.
@@ -336,6 +406,7 @@ Check out the `examples/` directory for complete working examples:
 
 - **weather_bot** - A weather information server with multiple tools
 - **async_weather_bot** - Async version demonstrating concurrent operations and async middleware
+- **websocket_chat** - Real-time chat server using WebSocket transport
 
 ## Development
 
@@ -401,6 +472,7 @@ SecureMCP builds on FastMCP to provide:
 | Basic MCP server | ✅ | ✅ |
 | Tool registration | Manual | Decorator-based |
 | Async/await support | ❌ | ✅ Full support |
+| WebSocket transport | ❌ | ✅ Built-in |
 | Middleware | ❌ | Global + tool-specific |
 | CLI commands | ❌ | `init`, `run`, `docs` |
 | Project scaffolding | ❌ | Templates & examples |
@@ -412,7 +484,7 @@ SecureMCP builds on FastMCP to provide:
 ## Roadmap
 
 - [x] Async tool support
-- [ ] WebSocket transport
+- [x] WebSocket transport
 - [ ] Plugin system
 - [ ] Built-in monitoring and metrics
 - [ ] Production deployment guides
