@@ -3,10 +3,9 @@ Core NextMCP class that wraps FastMCP and provides tool registration,
 middleware support, and server lifecycle management.
 """
 
-from typing import Callable, Dict, List, Any, Optional, Type
-import logging
 import inspect
-import asyncio
+import logging
+from typing import Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -90,6 +89,7 @@ class NextMCP:
             async def get_async_weather(city: str) -> dict:
                 return {"city": city, "temp": 72}
         """
+
         def decorator(fn: Callable) -> Callable:
             tool_name = name or fn.__name__
             is_async = inspect.iscoroutinefunction(fn)
@@ -138,6 +138,7 @@ class NextMCP:
         """
         if self._plugin_manager is None:
             from nextmcp.plugins import PluginManager
+
             self._plugin_manager = PluginManager(self)
         return self._plugin_manager
 
@@ -209,6 +210,7 @@ class NextMCP:
         """
         if self._metrics_collector is None:
             from nextmcp.metrics import MetricsCollector
+
             self._metrics_collector = MetricsCollector(prefix=self.name)
         return self._metrics_collector
 
@@ -308,8 +310,7 @@ class NextMCP:
             import fastmcp
         except ImportError:
             raise ImportError(
-                "FastMCP is required to run the server. "
-                "Install it with: pip install fastmcp"
+                "FastMCP is required to run the server. " "Install it with: pip install fastmcp"
             )
 
         logger.info(f"Starting {self.name} on {host}:{port}")

@@ -6,8 +6,8 @@ Provides consistent logging configuration across the framework and user applicat
 
 import logging
 import sys
-from typing import Optional
 from pathlib import Path
+from typing import Optional
 
 
 # ANSI color codes for terminal output
@@ -171,6 +171,7 @@ def log_function_call(logger: logging.Logger = None):
         def my_function(x, y):
             return x + y
     """
+
     def decorator(fn):
         nonlocal logger
         if logger is None:

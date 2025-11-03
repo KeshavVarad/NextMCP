@@ -4,10 +4,10 @@ Metric types for NextMCP monitoring.
 Provides Counter, Gauge, Histogram, and Summary metric types.
 """
 
-from typing import Dict, List, Optional, Union
-from datetime import datetime, timezone
 import threading
 import time
+from datetime import datetime, timezone
+from typing import Dict, List, Optional
 
 
 class Metric:
@@ -137,7 +137,7 @@ class Histogram(Metric):
     ):
         super().__init__(name, description, labels)
         self.buckets = sorted(buckets or self.DEFAULT_BUCKETS)
-        self._bucket_counts = {b: 0 for b in self.buckets}
+        self._bucket_counts = dict.fromkeys(self.buckets, 0)
         self._bucket_counts[float("inf")] = 0  # +Inf bucket
         self._sum = 0.0
         self._count = 0

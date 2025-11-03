@@ -6,16 +6,16 @@ over WebSocket connections using JSON-RPC style messaging.
 """
 
 import asyncio
+import inspect
 import json
 import logging
-from typing import Dict, Any, Optional, Callable, Set
-from dataclasses import dataclass, asdict
-import inspect
+from dataclasses import asdict, dataclass
+from typing import Any, Dict, Optional, Set
 
 try:
-    import websockets
-    from websockets.asyncio.server import serve, ServerConnection
+    from websockets.asyncio.server import ServerConnection, serve
     from websockets.exceptions import ConnectionClosed
+
     WEBSOCKETS_AVAILABLE = True
     WebSocketServerProtocol = ServerConnection  # Type alias for compatibility
 except ImportError:
@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class WSMessage:
     """WebSocket message structure following JSON-RPC pattern."""
+
     id: Optional[str] = None
     method: Optional[str] = None
     params: Optional[Dict[str, Any]] = None
@@ -57,15 +58,11 @@ class WSMessage:
         return cls(id=id, result=result)
 
     @classmethod
-    def error_response(cls, id: Optional[str], error_message: str, error_code: int = -1) -> "WSMessage":
+    def error_response(
+        cls, id: Optional[str], error_message: str, error_code: int = -1
+    ) -> "WSMessage":
         """Create an error response message."""
-        return cls(
-            id=id,
-            error={
-                "code": error_code,
-                "message": error_message
-            }
-        )
+        return cls(id=id, error={"code": error_code, "message": error_message})
 
 
 class WebSocketTransport:
@@ -122,8 +119,8 @@ class WebSocketTransport:
                 id="welcome",
                 result={
                     "message": f"Connected to {self.app.name}",
-                    "tools": list(self.app.get_tools().keys())
-                }
+                    "tools": list(self.app.get_tools().keys()),
+                },
             )
             await websocket.send(welcome.to_json())
 
@@ -138,7 +135,9 @@ class WebSocketTransport:
         finally:
             # Unregister connection
             self.connections.discard(websocket)
-            logger.info(f"[WS] Disconnected: {remote_addr} ({len(self.connections)} active connections)")
+            logger.info(
+                f"[WS] Disconnected: {remote_addr} ({len(self.connections)} active connections)"
+            )
 
     async def handle_message(self, websocket: WebSocketServerProtocol, message: str):
         """
@@ -159,11 +158,13 @@ class WebSocketTransport:
                 tools = self.app.get_tools()
                 tool_info = []
                 for name, fn in tools.items():
-                    tool_info.append({
-                        "name": name,
-                        "description": getattr(fn, "_tool_description", None),
-                        "is_async": getattr(fn, "_is_async", False)
-                    })
+                    tool_info.append(
+                        {
+                            "name": name,
+                            "description": getattr(fn, "_tool_description", None),
+                            "is_async": getattr(fn, "_is_async", False),
+                        }
+                    )
 
                 response = WSMessage.response(ws_msg.id, {"tools": tool_info})
                 await websocket.send(response.to_json())
@@ -180,28 +181,18 @@ class WebSocketTransport:
             else:
                 # Unknown method
                 error = WSMessage.error_response(
-                    ws_msg.id,
-                    f"Unknown method: {ws_msg.method}",
-                    error_code=-32601
+                    ws_msg.id, f"Unknown method: {ws_msg.method}", error_code=-32601
                 )
                 await websocket.send(error.to_json())
 
         except json.JSONDecodeError as e:
             logger.error(f"[WS] Invalid JSON: {e}")
-            error = WSMessage.error_response(
-                None,
-                f"Invalid JSON: {str(e)}",
-                error_code=-32700
-            )
+            error = WSMessage.error_response(None, f"Invalid JSON: {str(e)}", error_code=-32700)
             await websocket.send(error.to_json())
 
         except Exception as e:
             logger.error(f"[WS] Error handling message: {e}", exc_info=True)
-            error = WSMessage.error_response(
-                None,
-                f"Internal error: {str(e)}",
-                error_code=-32603
-            )
+            error = WSMessage.error_response(None, f"Internal error: {str(e)}", error_code=-32603)
             await websocket.send(error.to_json())
 
     async def invoke_tool(self, websocket: WebSocketServerProtocol, message: WSMessage):
@@ -218,9 +209,7 @@ class WebSocketTransport:
 
             if not tool_name:
                 error = WSMessage.error_response(
-                    message.id,
-                    "Missing tool_name in params",
-                    error_code=-32602
+                    message.id, "Missing tool_name in params", error_code=-32602
                 )
                 await websocket.send(error.to_json())
                 return
@@ -229,9 +218,7 @@ class WebSocketTransport:
             tools = self.app.get_tools()
             if tool_name not in tools:
                 error = WSMessage.error_response(
-                    message.id,
-                    f"Tool not found: {tool_name}",
-                    error_code=-32601
+                    message.id, f"Tool not found: {tool_name}", error_code=-32601
                 )
                 await websocket.send(error.to_json())
                 return
@@ -256,9 +243,7 @@ class WebSocketTransport:
         except TypeError as e:
             # Invalid parameters
             error = WSMessage.error_response(
-                message.id,
-                f"Invalid parameters: {str(e)}",
-                error_code=-32602
+                message.id, f"Invalid parameters: {str(e)}", error_code=-32602
             )
             await websocket.send(error.to_json())
 
@@ -266,9 +251,7 @@ class WebSocketTransport:
             # Tool execution error
             logger.error(f"[WS] Tool execution error: {e}", exc_info=True)
             error = WSMessage.error_response(
-                message.id,
-                f"Tool execution error: {str(e)}",
-                error_code=-32000
+                message.id, f"Tool execution error: {str(e)}", error_code=-32000
             )
             await websocket.send(error.to_json())
 
@@ -286,10 +269,7 @@ class WebSocketTransport:
         logger.info(f"[WS] Broadcasting to {len(self.connections)} connection(s)")
 
         # Send to all connections concurrently
-        tasks = [
-            websocket.send(message.to_json())
-            for websocket in self.connections
-        ]
+        tasks = [websocket.send(message.to_json()) for websocket in self.connections]
         await asyncio.gather(*tasks, return_exceptions=True)
 
     async def start(self, host: str = "0.0.0.0", port: int = 8765):
@@ -305,7 +285,7 @@ class WebSocketTransport:
 
         async with serve(self.handle_connection, host, port) as server:
             self.server = server
-            logger.info(f"[WS] Server started successfully")
+            logger.info("[WS] Server started successfully")
 
             # Wait until stop is requested
             await self._stop_event.wait()

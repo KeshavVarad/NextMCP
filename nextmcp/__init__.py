@@ -19,73 +19,38 @@ Example:
 
 __version__ = "0.1.0"
 
-# Core imports
-from nextmcp.core import NextMCP
-
-# Tool utilities
-from nextmcp.tools import (
-    tool,
-    get_tool_metadata,
-    generate_tool_docs,
-    ToolRegistry,
-)
-
-# Configuration
 from nextmcp.config import Config, load_config
-
-# Logging
-from nextmcp.logging import (
-    setup_logging,
-    get_logger,
-    LoggerContext,
-    log_function_call,
-)
-
-# Middleware
-from nextmcp.middleware import (
-    log_calls,
-    require_auth,
-    error_handler,
-    rate_limit,
-    validate_inputs,
-    cache_results,
-    timeout,
-    # Async middleware
-    log_calls_async,
-    require_auth_async,
-    error_handler_async,
-    rate_limit_async,
-    cache_results_async,
-    timeout_async,
-)
-
-# Transport
-from nextmcp.transport import (
-    WebSocketTransport,
-    WebSocketClient,
-    WSMessage,
-    invoke_remote_tool,
-)
-
-# Plugins
-from nextmcp.plugins import (
-    Plugin,
-    PluginManager,
-    PluginMetadata,
-)
-
-# Metrics
+from nextmcp.core import NextMCP
+from nextmcp.logging import LoggerContext, get_logger, log_function_call, setup_logging
 from nextmcp.metrics import (
     Counter,
     Gauge,
     Histogram,
-    Summary,
     MetricsCollector,
-    MetricsRegistry,
-    get_registry,
     MetricsConfig,
+    MetricsRegistry,
+    Summary,
+    get_registry,
     metrics_middleware,
 )
+from nextmcp.middleware import (
+    cache_results,
+    cache_results_async,
+    error_handler,
+    error_handler_async,
+    log_calls,
+    log_calls_async,
+    rate_limit,
+    rate_limit_async,
+    require_auth,
+    require_auth_async,
+    timeout,
+    timeout_async,
+    validate_inputs,
+)
+from nextmcp.plugins import Plugin, PluginManager, PluginMetadata
+from nextmcp.tools import ToolRegistry, generate_tool_docs, get_tool_metadata, tool
+from nextmcp.transport import WebSocketClient, WebSocketTransport, WSMessage, invoke_remote_tool
 
 # Define public API
 __all__ = [

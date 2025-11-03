@@ -2,11 +2,11 @@
 Metrics registry for managing metrics instances.
 """
 
-from typing import Dict, List, Optional, Type, Union
-import threading
 import logging
+import threading
+from typing import Dict, List, Optional, Type
 
-from nextmcp.metrics.types import Metric, Counter, Gauge, Histogram, Summary
+from nextmcp.metrics.types import Metric
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +42,7 @@ class MetricsRegistry:
             if key in self._metrics:
                 # Return existing metric if same type
                 existing = self._metrics[key]
-                if type(existing) == type(metric):
+                if type(existing) is type(metric):
                     return existing
                 raise ValueError(f"Metric '{key}' already registered with different type")
 
@@ -50,9 +50,7 @@ class MetricsRegistry:
             logger.debug(f"Registered metric: {key}")
             return metric
 
-    def get(
-        self, name: str, labels: Optional[Dict[str, str]] = None
-    ) -> Optional[Metric]:
+    def get(self, name: str, labels: Optional[Dict[str, str]] = None) -> Optional[Metric]:
         """
         Get a registered metric.
 

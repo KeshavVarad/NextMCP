@@ -5,10 +5,10 @@ This module provides decorators and utilities for defining MCP tools
 with optional Pydantic schema validation.
 """
 
-from typing import Callable, Optional, Type, Any, get_type_hints
-from functools import wraps
 import inspect
 import logging
+from functools import wraps
+from typing import Any, Callable, Optional, Type, get_type_hints
 
 try:
     from pydantic import BaseModel, ValidationError
@@ -19,7 +19,9 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-def tool(schema: Optional[Type] = None, name: Optional[str] = None, description: Optional[str] = None):
+def tool(
+    schema: Optional[Type] = None, name: Optional[str] = None, description: Optional[str] = None
+):
     """
     Standalone decorator for defining tools with optional schema validation.
 
@@ -42,6 +44,7 @@ def tool(schema: Optional[Type] = None, name: Optional[str] = None, description:
         def get_weather(city: str, units: str = "fahrenheit"):
             return {"city": city, "temp": 72, "units": units}
     """
+
     def decorator(fn: Callable) -> Callable:
         # Store metadata on the function
         fn._tool_schema = schema
@@ -128,21 +131,25 @@ def generate_tool_docs(tools: dict) -> str:
     """
     docs = ["# MCP Tools Documentation\n"]
 
-    for tool_name, tool_fn in tools.items():
+    for _tool_name, tool_fn in tools.items():
         metadata = get_tool_metadata(tool_fn)
 
         docs.append(f"\n## {metadata['name']}\n")
         docs.append(f"{metadata['description']}\n")
 
-        if metadata['parameters']:
+        if metadata["parameters"]:
             docs.append("\n### Parameters\n")
-            for param_name, param_info in metadata['parameters'].items():
-                required = "required" if param_info['required'] else "optional"
-                default = f" (default: {param_info['default']})" if param_info['default'] is not None else ""
+            for param_name, param_info in metadata["parameters"].items():
+                required = "required" if param_info["required"] else "optional"
+                default = (
+                    f" (default: {param_info['default']})"
+                    if param_info["default"] is not None
+                    else ""
+                )
                 docs.append(f"- `{param_name}` ({param_info['type']}, {required}){default}\n")
 
-        if metadata['schema']:
-            docs.append(f"\n### Schema\n")
+        if metadata["schema"]:
+            docs.append("\n### Schema\n")
             docs.append(f"Uses Pydantic model: `{metadata['schema'].__name__}`\n")
 
         docs.append("\n---\n")

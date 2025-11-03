@@ -2,11 +2,11 @@
 Prometheus format exporter for metrics.
 """
 
-from typing import List
 import logging
+from typing import List
 
-from nextmcp.metrics.types import Counter, Gauge, Histogram, Summary, Metric
 from nextmcp.metrics.registry import MetricsRegistry
+from nextmcp.metrics.types import Counter, Gauge, Histogram, Metric, Summary
 
 logger = logging.getLogger(__name__)
 

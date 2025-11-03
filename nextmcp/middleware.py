@@ -5,11 +5,11 @@ Middleware functions wrap tool functions to add cross-cutting concerns
 like logging, authentication, rate limiting, error handling, etc.
 """
 
-from typing import Callable, Optional, Dict, Any
-from functools import wraps
-import time
 import logging
+import time
 from datetime import datetime, timedelta, timezone
+from functools import wraps
+from typing import Callable, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +21,7 @@ def log_calls(fn: Callable) -> Callable:
     Example:
         app.add_middleware(log_calls)
     """
+
     @wraps(fn)
     def wrapper(*args, **kwargs):
         tool_name = getattr(fn, "_tool_name", fn.__name__)
@@ -56,6 +57,7 @@ def require_auth(api_key_param: str = "auth_key", valid_keys: Optional[set] = No
         def protected_tool(auth_key: str, data: str):
             return f"Processing: {data}"
     """
+
     def middleware(fn: Callable) -> Callable:
         @wraps(fn)
         def wrapper(*args, **kwargs):
@@ -85,6 +87,7 @@ def error_handler(fn: Callable) -> Callable:
     Example:
         app.add_middleware(error_handler)
     """
+
     @wraps(fn)
     def wrapper(*args, **kwargs):
         tool_name = getattr(fn, "_tool_name", fn.__name__)
@@ -131,8 +134,7 @@ def rate_limit(max_calls: int, time_window: int):
             # Remove old calls outside the time window
             cutoff = now - timedelta(seconds=time_window)
             call_history[tool_name] = [
-                call_time for call_time in call_history[tool_name]
-                if call_time > cutoff
+                call_time for call_time in call_history[tool_name] if call_time > cutoff
             ]
 
             # Check rate limit
@@ -173,6 +175,7 @@ def validate_inputs(**validators):
         def process_payment(amount: float):
             return {"charged": amount}
     """
+
     def middleware(fn: Callable) -> Callable:
         @wraps(fn)
         def wrapper(*args, **kwargs):
@@ -259,6 +262,7 @@ def timeout(seconds: int):
         def long_running_task(data: str):
             return process_data(data)
     """
+
     def middleware(fn: Callable) -> Callable:
         @wraps(fn)
         def wrapper(*args, **kwargs):
@@ -302,6 +306,7 @@ def log_calls_async(fn: Callable) -> Callable:
         async def my_async_tool(param: str):
             return await some_async_operation(param)
     """
+
     @wraps(fn)
     async def wrapper(*args, **kwargs):
         tool_name = getattr(fn, "_tool_name", fn.__name__)
@@ -338,6 +343,7 @@ def require_auth_async(api_key_param: str = "auth_key", valid_keys: Optional[set
             result = await process_data(data)
             return result
     """
+
     def middleware(fn: Callable) -> Callable:
         @wraps(fn)
         async def wrapper(*args, **kwargs):
@@ -371,6 +377,7 @@ def error_handler_async(fn: Callable) -> Callable:
         async def my_async_tool(param: str):
             return await some_operation(param)
     """
+
     @wraps(fn)
     async def wrapper(*args, **kwargs):
         tool_name = getattr(fn, "_tool_name", fn.__name__)
@@ -421,8 +428,7 @@ def rate_limit_async(max_calls: int, time_window: int):
             # Remove old calls outside the time window
             cutoff = now - timedelta(seconds=time_window)
             call_history[tool_name] = [
-                call_time for call_time in call_history[tool_name]
-                if call_time > cutoff
+                call_time for call_time in call_history[tool_name] if call_time > cutoff
             ]
 
             # Check rate limit
@@ -505,6 +511,7 @@ def timeout_async(seconds: int):
         async def long_running_task(data: str):
             return await process_data(data)
     """
+
     def middleware(fn: Callable) -> Callable:
         @wraps(fn)
         async def wrapper(*args, **kwargs):

@@ -5,15 +5,14 @@ Provides a simple client interface for invoking tools over WebSocket.
 """
 
 import asyncio
-import json
 import logging
-from typing import Any, Dict, Optional, Callable
 import uuid
+from typing import Any, Callable, Dict, Optional
 
 try:
-    import websockets
     from websockets.asyncio.client import connect
     from websockets.exceptions import ConnectionClosed
+
     WEBSOCKETS_AVAILABLE = True
 except ImportError:
     WEBSOCKETS_AVAILABLE = False
@@ -110,9 +109,7 @@ class WebSocketClient:
                     future = self._pending_requests.pop(ws_msg.id)
 
                     if ws_msg.error:
-                        future.set_exception(
-                            Exception(f"Server error: {ws_msg.error['message']}")
-                        )
+                        future.set_exception(Exception(f"Server error: {ws_msg.error['message']}"))
                     else:
                         future.set_result(ws_msg.result)
 
@@ -125,7 +122,9 @@ class WebSocketClient:
         except Exception as e:
             logger.error(f"[WS Client] Error in message handler: {e}", exc_info=True)
 
-    async def _send_request(self, method: str, params: Optional[Dict[str, Any]] = None, timeout: float = 30.0) -> Any:
+    async def _send_request(
+        self, method: str, params: Optional[Dict[str, Any]] = None, timeout: float = 30.0
+    ) -> Any:
         """
         Send a request and wait for response.
 
@@ -185,7 +184,9 @@ class WebSocketClient:
         result = await self._send_request("list_tools")
         return result
 
-    async def invoke_tool(self, tool_name: str, params: Optional[Dict[str, Any]] = None, timeout: float = 30.0) -> Any:
+    async def invoke_tool(
+        self, tool_name: str, params: Optional[Dict[str, Any]] = None, timeout: float = 30.0
+    ) -> Any:
         """
         Invoke a tool on the server.
 
@@ -197,10 +198,7 @@ class WebSocketClient:
         Returns:
             Tool execution result
         """
-        request_params = {
-            "tool_name": tool_name,
-            "params": params or {}
-        }
+        request_params = {"tool_name": tool_name, "params": params or {}}
         result = await self._send_request("invoke_tool", request_params, timeout=timeout)
         return result
 
@@ -225,7 +223,9 @@ class WebSocketClient:
 
 
 # Convenience function for quick tool invocation
-async def invoke_remote_tool(uri: str, tool_name: str, params: Optional[Dict[str, Any]] = None) -> Any:
+async def invoke_remote_tool(
+    uri: str, tool_name: str, params: Optional[Dict[str, Any]] = None
+) -> Any:
     """
     Convenience function to invoke a tool on a remote server.
 

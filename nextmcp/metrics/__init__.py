@@ -14,11 +14,11 @@ Example:
         return "result"
 """
 
-from nextmcp.metrics.types import Counter, Gauge, Histogram, Summary
 from nextmcp.metrics.collector import MetricsCollector
-from nextmcp.metrics.registry import MetricsRegistry, get_registry
-from nextmcp.metrics.middleware import MetricsMiddleware, metrics_middleware
 from nextmcp.metrics.config import MetricsConfig
+from nextmcp.metrics.middleware import MetricsMiddleware, metrics_middleware
+from nextmcp.metrics.registry import MetricsRegistry, get_registry
+from nextmcp.metrics.types import Counter, Gauge, Histogram, Summary
 
 __all__ = [
     # Metric types

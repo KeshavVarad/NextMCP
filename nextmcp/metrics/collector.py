@@ -2,12 +2,11 @@
 Metrics collector for NextMCP applications.
 """
 
-from typing import Dict, Optional
-import time
 import logging
+from typing import Dict, Optional
 
-from nextmcp.metrics.types import Counter, Gauge, Histogram, Summary
 from nextmcp.metrics.registry import MetricsRegistry, get_registry
+from nextmcp.metrics.types import Counter, Gauge, Histogram, Summary
 
 logger = logging.getLogger(__name__)
 

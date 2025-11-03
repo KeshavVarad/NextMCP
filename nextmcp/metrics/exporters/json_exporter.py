@@ -3,11 +3,11 @@ JSON format exporter for metrics.
 """
 
 import json
-from typing import Dict, Any, List
 import logging
+from typing import Any, Dict, List
 
-from nextmcp.metrics.types import Counter, Gauge, Histogram, Summary, Metric
 from nextmcp.metrics.registry import MetricsRegistry
+from nextmcp.metrics.types import Counter, Gauge, Histogram, Summary
 
 logger = logging.getLogger(__name__)
 
@@ -107,10 +107,7 @@ class JSONExporter:
             "count": count,
             "sum": total,
             "avg": total / count if count > 0 else 0,
-            "buckets": {
-                str(k) if k != float("inf") else "+Inf": v
-                for k, v in buckets.items()
-            },
+            "buckets": {str(k) if k != float("inf") else "+Inf": v for k, v in buckets.items()},
         }
 
     def _export_summary(self, summary: Summary) -> Dict[str, Any]:

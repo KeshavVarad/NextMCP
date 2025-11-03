@@ -20,13 +20,13 @@ Example:
                 return "Hello from plugin!"
 """
 
-from typing import Dict, List, Optional, Any, Callable, Type
-from pathlib import Path
 import importlib
 import importlib.util
 import inspect
 import logging
 from abc import ABC, abstractmethod
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Type
 
 logger = logging.getLogger(__name__)
 
@@ -332,11 +332,7 @@ class PluginManager:
 
         # Find Plugin subclasses
         for name, obj in inspect.getmembers(module):
-            if (
-                inspect.isclass(obj)
-                and issubclass(obj, Plugin)
-                and obj is not Plugin
-            ):
+            if inspect.isclass(obj) and issubclass(obj, Plugin) and obj is not Plugin:
                 try:
                     self.register_plugin_class(obj)
                     logger.info(f"Discovered plugin: {obj.name} from {file_path.name}")

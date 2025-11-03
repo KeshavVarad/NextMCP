@@ -8,10 +8,10 @@ Supports loading configuration from:
 - Command-line arguments
 """
 
-import os
-from typing import Any, Dict, Optional
-from pathlib import Path
 import logging
+import os
+from pathlib import Path
+from typing import Any, Dict, Optional
 
 try:
     from dotenv import load_dotenv
@@ -40,7 +40,7 @@ class Config:
         self,
         config_file: Optional[str] = None,
         env_file: Optional[str] = ".env",
-        load_env: bool = True
+        load_env: bool = True,
     ):
         """
         Initialize configuration manager.
@@ -99,7 +99,7 @@ class Config:
             return
 
         try:
-            with open(path, "r") as f:
+            with open(path) as f:
                 yaml_config = yaml.safe_load(f)
                 if yaml_config:
                     self._config.update(yaml_config)
@@ -220,11 +220,7 @@ class Config:
         return key in self._config
 
 
-def load_config(
-    config_file: Optional[str] = None,
-    env_file: str = ".env",
-    **overrides
-) -> Config:
+def load_config(config_file: Optional[str] = None, env_file: str = ".env", **overrides) -> Config:
     """
     Convenience function to load configuration.
 

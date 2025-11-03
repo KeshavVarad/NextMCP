@@ -2,11 +2,11 @@
 Metrics middleware for automatic metrics collection.
 """
 
-from typing import Callable, Optional
-import time
 import functools
 import inspect
 import logging
+import time
+from typing import Callable, Optional
 
 from nextmcp.metrics.collector import MetricsCollector
 from nextmcp.metrics.config import MetricsConfig

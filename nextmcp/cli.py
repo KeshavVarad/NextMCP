@@ -7,11 +7,11 @@ Provides commands for:
 - Generating documentation
 """
 
+import logging
+import shutil
 import sys
 from pathlib import Path
 from typing import Optional
-import shutil
-import logging
 
 try:
     import typer
@@ -49,21 +49,16 @@ def get_examples_dir() -> Path:
 
 
 if app:
+
     @app.command()
     def init(
         name: str = typer.Argument(..., help="Name of the new project"),
         template: str = typer.Option(
-            "weather_bot",
-            "--template",
-            "-t",
-            help="Template to use (default: weather_bot)"
+            "weather_bot", "--template", "-t", help="Template to use (default: weather_bot)"
         ),
         path: Optional[str] = typer.Option(
-            None,
-            "--path",
-            "-p",
-            help="Custom path for the project (default: ./<name>)"
-        )
+            None, "--path", "-p", help="Custom path for the project (default: ./<name>)"
+        ),
     ):
         """
         Initialize a new NextMCP project from a template.
@@ -103,16 +98,16 @@ if app:
 
             if console:
                 console.print(f"[green]✓[/green] Created new project: {target_path}")
-                console.print(f"\nNext steps:")
+                console.print("\nNext steps:")
                 console.print(f"  cd {target_path}")
-                console.print(f"  pip install -r requirements.txt  # if present")
-                console.print(f"  mcp run app.py")
+                console.print("  pip install -r requirements.txt  # if present")
+                console.print("  mcp run app.py")
             else:
                 print(f"✓ Created new project: {target_path}")
-                print(f"\nNext steps:")
+                print("\nNext steps:")
                 print(f"  cd {target_path}")
-                print(f"  pip install -r requirements.txt")
-                print(f"  mcp run app.py")
+                print("  pip install -r requirements.txt")
+                print("  mcp run app.py")
 
         except Exception as e:
             if console:
@@ -121,31 +116,16 @@ if app:
                 print(f"Error: {e}")
             raise typer.Exit(code=1)
 
-
     @app.command()
     def run(
         app_file: str = typer.Argument(
-            "app.py",
-            help="Python file containing the NextMCP application"
+            "app.py", help="Python file containing the NextMCP application"
         ),
-        host: str = typer.Option(
-            "127.0.0.1",
-            "--host",
-            "-h",
-            help="Host to bind to"
-        ),
-        port: int = typer.Option(
-            8000,
-            "--port",
-            "-p",
-            help="Port to bind to"
-        ),
+        host: str = typer.Option("127.0.0.1", "--host", "-h", help="Host to bind to"),
+        port: int = typer.Option(8000, "--port", "-p", help="Port to bind to"),
         reload: bool = typer.Option(
-            False,
-            "--reload",
-            "-r",
-            help="Enable auto-reload on file changes"
-        )
+            False, "--reload", "-r", help="Enable auto-reload on file changes"
+        ),
     ):
         """
         Run a NextMCP application.
@@ -166,7 +146,7 @@ if app:
                 raise typer.Exit(code=1)
 
             if console:
-                console.print(f"[blue]Starting NextMCP server...[/blue]")
+                console.print("[blue]Starting NextMCP server...[/blue]")
                 console.print(f"  File: {app_file}")
                 console.print(f"  Host: {host}")
                 console.print(f"  Port: {port}")
@@ -175,11 +155,12 @@ if app:
 
             # Set environment variables for the app to use
             import os
+
             os.environ["MCP_HOST"] = host
             os.environ["MCP_PORT"] = str(port)
 
             # Execute the app file
-            with open(app_path, "r") as f:
+            with open(app_path) as f:
                 code = f.read()
 
             # Create a namespace for execution
@@ -195,25 +176,17 @@ if app:
                 print(f"Error: {e}")
             raise typer.Exit(code=1)
 
-
     @app.command()
     def docs(
         app_file: str = typer.Argument(
-            "app.py",
-            help="Python file containing the NextMCP application"
+            "app.py", help="Python file containing the NextMCP application"
         ),
         output: Optional[str] = typer.Option(
-            None,
-            "--output",
-            "-o",
-            help="Output file for documentation (default: stdout)"
+            None, "--output", "-o", help="Output file for documentation (default: stdout)"
         ),
         format: str = typer.Option(
-            "markdown",
-            "--format",
-            "-f",
-            help="Output format: markdown, json"
-        )
+            "markdown", "--format", "-f", help="Output format: markdown, json"
+        ),
     ):
         """
         Generate documentation for MCP tools.
@@ -236,7 +209,7 @@ if app:
                 raise typer.Exit(code=1)
 
             # Load the app file
-            with open(app_path, "r") as f:
+            with open(app_path) as f:
                 code = f.read()
 
             namespace = {}
@@ -261,10 +234,11 @@ if app:
                 doc_content = generate_tool_docs(app_instance._tools)
             elif format == "json":
                 import json
+
                 from nextmcp.tools import get_tool_metadata
+
                 tools_metadata = {
-                    name: get_tool_metadata(fn)
-                    for name, fn in app_instance._tools.items()
+                    name: get_tool_metadata(fn) for name, fn in app_instance._tools.items()
                 }
                 doc_content = json.dumps(tools_metadata, indent=2)
             else:
@@ -291,12 +265,12 @@ if app:
                 print(f"Error: {e}")
             raise typer.Exit(code=1)
 
-
     @app.command()
     def version():
         """Show NextMCP version information."""
         try:
             from nextmcp import __version__
+
             version_str = __version__
         except ImportError:
             version_str = "unknown"
