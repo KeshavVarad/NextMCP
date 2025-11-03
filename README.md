@@ -1,5 +1,11 @@
 # NextMCP
 
+[![Tests](https://github.com/KeshavVarad/NextMCP/workflows/Tests/badge.svg)](https://github.com/KeshavVarad/NextMCP/actions)
+[![PyPI version](https://badge.fury.io/py/nextmcp.svg)](https://badge.fury.io/py/nextmcp)
+[![Python versions](https://img.shields.io/pypi/pyversions/nextmcp.svg)](https://pypi.org/project/nextmcp/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 **Production-grade MCP server toolkit with minimal boilerplate**
 
 NextMCP is a Python SDK built on top of FastMCP that provides a developer-friendly experience for building MCP (Model Context Protocol) servers. Inspired by Next.js, it offers minimal setup, powerful middleware, and a rich CLI for rapid development.
