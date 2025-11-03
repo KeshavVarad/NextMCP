@@ -1,8 +1,8 @@
-# SecureMCP
+# NextMCP
 
 **Production-grade MCP server toolkit with minimal boilerplate**
 
-SecureMCP is a Python SDK built on top of FastMCP that provides a developer-friendly experience for building MCP (Model Context Protocol) servers. Inspired by Next.js, it offers minimal setup, powerful middleware, and a rich CLI for rapid development.
+NextMCP is a Python SDK built on top of FastMCP that provides a developer-friendly experience for building MCP (Model Context Protocol) servers. Inspired by Next.js, it offers minimal setup, powerful middleware, and a rich CLI for rapid development.
 
 ## Features
 
@@ -21,29 +21,29 @@ SecureMCP is a Python SDK built on top of FastMCP that provides a developer-frie
 ### Basic Installation
 
 ```bash
-pip install securemcp
+pip install nextmcp
 ```
 
 ### With Optional Dependencies
 
 ```bash
 # CLI tools (recommended)
-pip install securemcp[cli]
+pip install nextmcp[cli]
 
 # Configuration support
-pip install securemcp[config]
+pip install nextmcp[config]
 
 # Schema validation with Pydantic
-pip install securemcp[schema]
+pip install nextmcp[schema]
 
 # WebSocket transport
-pip install securemcp[websocket]
+pip install nextmcp[websocket]
 
 # Everything
-pip install securemcp[all]
+pip install nextmcp[all]
 
 # Development dependencies
-pip install securemcp[dev]
+pip install nextmcp[dev]
 ```
 
 ## Quick Start
@@ -59,9 +59,9 @@ cd my-bot
 
 ```python
 # app.py
-from securemcp import SecureMCP
+from nextmcp import NextMCP
 
-app = SecureMCP("my-bot")
+app = NextMCP("my-bot")
 
 @app.tool()
 def greet(name: str) -> str:
@@ -85,9 +85,9 @@ That's it! Your MCP server is now running with the `greet` tool available.
 ### Creating an Application
 
 ```python
-from securemcp import SecureMCP
+from nextmcp import NextMCP
 
-app = SecureMCP(
+app = NextMCP(
     name="my-mcp-server",
     description="A custom MCP server"
 )
@@ -114,7 +114,7 @@ Middleware wraps your tools to add cross-cutting functionality.
 #### Global Middleware (applied to all tools)
 
 ```python
-from securemcp import log_calls, error_handler
+from nextmcp import log_calls, error_handler
 
 # Add middleware that applies to all tools
 app.add_middleware(log_calls)
@@ -128,7 +128,7 @@ def my_tool(x: int) -> int:
 #### Tool-specific Middleware
 
 ```python
-from securemcp import cache_results, require_auth
+from nextmcp import cache_results, require_auth
 
 @app.tool()
 @cache_results(ttl_seconds=300)  # Cache for 5 minutes
@@ -144,7 +144,7 @@ def protected_tool(auth_key: str, data: str) -> str:
 
 ### Built-in Middleware
 
-SecureMCP includes several production-ready middleware:
+NextMCP includes several production-ready middleware:
 
 - **`log_calls`** - Log all tool invocations with timing
 - **`error_handler`** - Catch exceptions and return structured errors
@@ -158,15 +158,15 @@ All middleware also have async variants (e.g., `log_calls_async`, `error_handler
 
 ### Async Support
 
-SecureMCP has full support for async/await patterns, allowing you to build high-performance tools that can handle concurrent I/O operations.
+NextMCP has full support for async/await patterns, allowing you to build high-performance tools that can handle concurrent I/O operations.
 
 #### Basic Async Tool
 
 ```python
-from securemcp import SecureMCP
+from nextmcp import NextMCP
 import asyncio
 
-app = SecureMCP("async-app")
+app = NextMCP("async-app")
 
 @app.tool()
 async def fetch_data(url: str) -> dict:
@@ -181,7 +181,7 @@ async def fetch_data(url: str) -> dict:
 Use async middleware variants for async tools:
 
 ```python
-from securemcp import log_calls_async, error_handler_async, cache_results_async
+from nextmcp import log_calls_async, error_handler_async, cache_results_async
 
 app.add_middleware(log_calls_async)
 app.add_middleware(error_handler_async)
@@ -251,10 +251,10 @@ See `examples/async_weather_bot/` for a complete async example.
 ### Schema Validation with Pydantic
 
 ```python
-from securemcp import SecureMCP
+from nextmcp import NextMCP
 from pydantic import BaseModel
 
-app = SecureMCP("my-server")
+app = NextMCP("my-server")
 
 class WeatherInput(BaseModel):
     city: str
@@ -268,10 +268,10 @@ def get_weather(city: str, units: str = "fahrenheit") -> dict:
 
 ### Configuration
 
-SecureMCP supports multiple configuration sources with automatic merging:
+NextMCP supports multiple configuration sources with automatic merging:
 
 ```python
-from securemcp import load_config
+from nextmcp import load_config
 
 # Load from config.yaml and .env
 config = load_config(config_file="config.yaml")
@@ -302,15 +302,15 @@ API_KEY=my-secret-key
 
 ### WebSocket Transport
 
-SecureMCP supports WebSocket transport for real-time, bidirectional communication - perfect for chat applications, live updates, and interactive tools.
+NextMCP supports WebSocket transport for real-time, bidirectional communication - perfect for chat applications, live updates, and interactive tools.
 
 #### Server Setup
 
 ```python
-from securemcp import SecureMCP
-from securemcp.transport import WebSocketTransport
+from nextmcp import NextMCP
+from nextmcp.transport import WebSocketTransport
 
-app = SecureMCP("websocket-server")
+app = NextMCP("websocket-server")
 
 @app.tool()
 async def send_message(username: str, message: str) -> dict:
@@ -330,7 +330,7 @@ transport.run(host="0.0.0.0", port=8765)
 #### Client Usage
 
 ```python
-from securemcp.transport import WebSocketClient
+from nextmcp.transport import WebSocketClient
 
 async def main():
     async with WebSocketClient("ws://localhost:8765") as client:
@@ -368,7 +368,7 @@ See `examples/websocket_chat/` for a complete WebSocket application.
 
 ## CLI Commands
 
-SecureMCP provides a rich CLI for common development tasks.
+NextMCP provides a rich CLI for common development tasks.
 
 ### Initialize a new project
 
@@ -414,8 +414,8 @@ Check out the `examples/` directory for complete working examples:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/securemcp.git
-cd securemcp
+git clone https://github.com/KeshavVarad/NextMCP.git
+cd nextmcp
 
 # Install in editable mode with dev dependencies
 pip install -e ".[dev]"
@@ -424,16 +424,16 @@ pip install -e ".[dev]"
 pytest
 
 # Run tests with coverage
-pytest --cov=securemcp --cov-report=html
+pytest --cov=nextmcp --cov-report=html
 
 # Format code
-black securemcp tests
+black nextmcp tests
 
 # Lint code
-ruff check securemcp tests
+ruff check nextmcp tests
 
 # Type check
-mypy securemcp
+mypy nextmcp
 ```
 
 ### Running Tests
@@ -449,14 +449,14 @@ pytest tests/test_core.py
 pytest -v
 
 # Run with coverage
-pytest --cov=securemcp
+pytest --cov=nextmcp
 ```
 
 ## Architecture
 
-SecureMCP is organized into several modules:
+NextMCP is organized into several modules:
 
-- **`core.py`** - Main `SecureMCP` class and application lifecycle
+- **`core.py`** - Main `NextMCP` class and application lifecycle
 - **`tools.py`** - Tool registration, metadata, and documentation generation
 - **`middleware.py`** - Built-in middleware for common use cases
 - **`config.py`** - Configuration management (YAML, .env, environment variables)
@@ -465,9 +465,9 @@ SecureMCP is organized into several modules:
 
 ## Comparison with FastMCP
 
-SecureMCP builds on FastMCP to provide:
+NextMCP builds on FastMCP to provide:
 
-| Feature | FastMCP | SecureMCP |
+| Feature | FastMCP | NextMCP |
 |---------|---------|-----------|
 | Basic MCP server | ✅ | ✅ |
 | Tool registration | Manual | Decorator-based |
@@ -514,9 +514,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Support
 
-- GitHub Issues: [https://github.com/yourusername/securemcp/issues](https://github.com/yourusername/securemcp/issues)
+- GitHub Issues: [https://github.com/KeshavVarad/NextMCP/issues](https://github.com/KeshavVarad/NextMCP/issues)
 - Documentation: [Coming soon]
 
 ---
 
-**Made with ❤️ by the SecureMCP community**
+**Made with ❤️ by the NextMCP community**

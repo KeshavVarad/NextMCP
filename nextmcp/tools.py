@@ -23,7 +23,7 @@ def tool(schema: Optional[Type] = None, name: Optional[str] = None, description:
     """
     Standalone decorator for defining tools with optional schema validation.
 
-    This can be used independently or in conjunction with SecureMCP.tool().
+    This can be used independently or in conjunction with NextMCP.tool().
 
     Args:
         schema: Optional Pydantic BaseModel class for input validation
@@ -31,7 +31,7 @@ def tool(schema: Optional[Type] = None, name: Optional[str] = None, description:
         description: Optional description of the tool
 
     Example:
-        from securemcp.tools import tool
+        from nextmcp.tools import tool
         from pydantic import BaseModel
 
         class WeatherInput(BaseModel):

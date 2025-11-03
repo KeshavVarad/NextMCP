@@ -1,5 +1,5 @@
 """
-WebSocket Chat Client - Example client for SecureMCP WebSocket server
+WebSocket Chat Client - Example client for NextMCP WebSocket server
 
 This example demonstrates:
 - Connecting to a WebSocket server
@@ -9,7 +9,7 @@ This example demonstrates:
 """
 
 import asyncio
-from securemcp.transport import WebSocketClient
+from nextmcp.transport import WebSocketClient
 
 
 async def main():

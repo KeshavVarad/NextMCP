@@ -1,5 +1,5 @@
 """
-WebSocket client for connecting to SecureMCP WebSocket servers.
+WebSocket client for connecting to NextMCP WebSocket servers.
 
 Provides a simple client interface for invoking tools over WebSocket.
 """
@@ -18,14 +18,14 @@ try:
 except ImportError:
     WEBSOCKETS_AVAILABLE = False
 
-from securemcp.transport.websocket import WSMessage
+from nextmcp.transport.websocket import WSMessage
 
 logger = logging.getLogger(__name__)
 
 
 class WebSocketClient:
     """
-    Client for connecting to SecureMCP WebSocket servers.
+    Client for connecting to NextMCP WebSocket servers.
 
     Example:
         async with WebSocketClient("ws://localhost:8765") as client:

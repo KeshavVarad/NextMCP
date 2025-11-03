@@ -1,5 +1,5 @@
 """
-WebSocket Chat Server - Example SecureMCP Application with WebSocket Transport
+WebSocket Chat Server - Example NextMCP Application with WebSocket Transport
 
 This example demonstrates:
 - Using WebSocket transport instead of HTTP
@@ -9,8 +9,8 @@ This example demonstrates:
 """
 
 import asyncio
-from securemcp import SecureMCP, setup_logging, log_calls_async, error_handler_async
-from securemcp.transport import WebSocketTransport
+from nextmcp import NextMCP, setup_logging, log_calls_async, error_handler_async
+from nextmcp.transport import WebSocketTransport
 from datetime import datetime, timezone
 from typing import List
 
@@ -18,7 +18,7 @@ from typing import List
 setup_logging(level="INFO")
 
 # Create the MCP application
-app = SecureMCP(
+app = NextMCP(
     name="websocket-chat-server",
     description="A real-time chat server using WebSocket transport"
 )

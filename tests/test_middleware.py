@@ -1,10 +1,10 @@
 """
-Unit tests for securemcp.middleware module
+Unit tests for nextmcp.middleware module
 """
 
 import pytest
 import time
-from securemcp.middleware import (
+from nextmcp.middleware import (
     log_calls,
     require_auth,
     error_handler,

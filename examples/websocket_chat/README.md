@@ -1,6 +1,6 @@
 # WebSocket Chat Example
 
-This example demonstrates how to use SecureMCP with WebSocket transport for real-time, bidirectional communication.
+This example demonstrates how to use NextMCP with WebSocket transport for real-time, bidirectional communication.
 
 ## Features
 
@@ -173,10 +173,10 @@ Test connection health.
 ### Server Side
 
 ```python
-from securemcp import SecureMCP
-from securemcp.transport import WebSocketTransport
+from nextmcp import NextMCP
+from nextmcp.transport import WebSocketTransport
 
-app = SecureMCP("my-websocket-app")
+app = NextMCP("my-websocket-app")
 
 @app.tool()
 async def my_tool(param: str) -> dict:
@@ -192,7 +192,7 @@ transport.run(host="0.0.0.0", port=8765)
 ### Client Side
 
 ```python
-from securemcp.transport import WebSocketClient
+from nextmcp.transport import WebSocketClient
 
 async def main():
     async with WebSocketClient("ws://localhost:8765") as client:

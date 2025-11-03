@@ -1,13 +1,13 @@
 """
-SecureMCP - Production-grade MCP server toolkit
+NextMCP - Production-grade MCP server toolkit
 
 A Python SDK for building MCP servers with minimal boilerplate,
 inspired by Next.js's developer experience.
 
 Example:
-    from securemcp import SecureMCP, tool
+    from nextmcp import NextMCP, tool
 
-    app = SecureMCP("my-server")
+    app = NextMCP("my-server")
 
     @app.tool()
     def hello(name: str) -> str:
@@ -20,10 +20,10 @@ Example:
 __version__ = "0.1.0"
 
 # Core imports
-from securemcp.core import SecureMCP
+from nextmcp.core import NextMCP
 
 # Tool utilities
-from securemcp.tools import (
+from nextmcp.tools import (
     tool,
     get_tool_metadata,
     generate_tool_docs,
@@ -31,10 +31,10 @@ from securemcp.tools import (
 )
 
 # Configuration
-from securemcp.config import Config, load_config
+from nextmcp.config import Config, load_config
 
 # Logging
-from securemcp.logging import (
+from nextmcp.logging import (
     setup_logging,
     get_logger,
     LoggerContext,
@@ -42,7 +42,7 @@ from securemcp.logging import (
 )
 
 # Middleware
-from securemcp.middleware import (
+from nextmcp.middleware import (
     log_calls,
     require_auth,
     error_handler,
@@ -60,7 +60,7 @@ from securemcp.middleware import (
 )
 
 # Transport
-from securemcp.transport import (
+from nextmcp.transport import (
     WebSocketTransport,
     WebSocketClient,
     WSMessage,
@@ -72,7 +72,7 @@ __all__ = [
     # Version
     "__version__",
     # Core
-    "SecureMCP",
+    "NextMCP",
     # Tools
     "tool",
     "get_tool_metadata",

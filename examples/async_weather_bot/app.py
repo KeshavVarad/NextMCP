@@ -1,15 +1,15 @@
 """
-Async Weather Bot - Example SecureMCP Application with Async Support
+Async Weather Bot - Example NextMCP Application with Async Support
 
 This example demonstrates:
-- Creating a SecureMCP application with async tools
+- Creating a NextMCP application with async tools
 - Registering async tools with decorators
 - Using async middleware for logging and error handling
 - Async/await patterns with external API calls
 """
 
 import asyncio
-from securemcp import SecureMCP, setup_logging, log_calls_async, error_handler_async
+from nextmcp import NextMCP, setup_logging, log_calls_async, error_handler_async
 from typing import Optional
 import random
 
@@ -17,7 +17,7 @@ import random
 setup_logging(level="INFO")
 
 # Create the MCP application
-app = SecureMCP(
+app = NextMCP(
     name="async-weather-bot",
     description="An async weather information MCP server"
 )

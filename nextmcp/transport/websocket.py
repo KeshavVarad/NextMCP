@@ -1,5 +1,5 @@
 """
-WebSocket transport for SecureMCP.
+WebSocket transport for NextMCP.
 
 Provides WebSocket server and client implementations for MCP tool invocation
 over WebSocket connections using JSON-RPC style messaging.
@@ -70,13 +70,13 @@ class WSMessage:
 
 class WebSocketTransport:
     """
-    WebSocket transport for SecureMCP applications.
+    WebSocket transport for NextMCP applications.
 
     Provides a WebSocket server that can handle tool invocations over
     WebSocket connections using JSON-RPC style messaging.
 
     Example:
-        app = SecureMCP("ws-server")
+        app = NextMCP("ws-server")
 
         @app.tool()
         async def my_tool(param: str) -> str:
@@ -91,7 +91,7 @@ class WebSocketTransport:
         Initialize WebSocket transport.
 
         Args:
-            app: SecureMCP application instance
+            app: NextMCP application instance
         """
         if not WEBSOCKETS_AVAILABLE:
             raise ImportError(

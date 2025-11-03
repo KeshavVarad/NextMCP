@@ -1,5 +1,5 @@
 """
-Core SecureMCP class that wraps FastMCP and provides tool registration,
+Core NextMCP class that wraps FastMCP and provides tool registration,
 middleware support, and server lifecycle management.
 """
 
@@ -11,7 +11,7 @@ import asyncio
 logger = logging.getLogger(__name__)
 
 
-class SecureMCP:
+class NextMCP:
     """
     Main application class for building MCP servers.
 
@@ -19,7 +19,7 @@ class SecureMCP:
     for registering tools and applying middleware.
 
     Example:
-        app = SecureMCP("my-mcp-server")
+        app = NextMCP("my-mcp-server")
 
         @app.tool()
         def my_tool(param: str) -> str:
@@ -30,7 +30,7 @@ class SecureMCP:
 
     def __init__(self, name: str, description: Optional[str] = None):
         """
-        Initialize a new SecureMCP application.
+        Initialize a new NextMCP application.
 
         Args:
             name: The name of your MCP server
@@ -42,7 +42,7 @@ class SecureMCP:
         self._global_middleware: List[Callable] = []
         self._fastmcp_server = None
 
-        logger.info(f"Initializing SecureMCP application: {self.name}")
+        logger.info(f"Initializing NextMCP application: {self.name}")
 
     def add_middleware(self, middleware_fn: Callable) -> None:
         """

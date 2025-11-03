@@ -1,5 +1,5 @@
 """
-Tests for async functionality in SecureMCP.
+Tests for async functionality in NextMCP.
 
 This module tests:
 - Async tool registration and execution
@@ -11,8 +11,8 @@ This module tests:
 import pytest
 import asyncio
 import time
-from securemcp import SecureMCP
-from securemcp.middleware import (
+from nextmcp import NextMCP
+from nextmcp.middleware import (
     log_calls_async,
     error_handler_async,
     rate_limit_async,
@@ -27,7 +27,7 @@ class TestAsyncToolRegistration:
 
     def test_async_tool_registration(self):
         """Test that async tools are properly registered."""
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
 
         @app.tool()
         async def async_tool(x: int) -> int:
@@ -40,7 +40,7 @@ class TestAsyncToolRegistration:
 
     def test_sync_tool_registration(self):
         """Test that sync tools are properly marked as non-async."""
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
 
         @app.tool()
         def sync_tool(x: int) -> int:
@@ -53,7 +53,7 @@ class TestAsyncToolRegistration:
 
     def test_mixed_sync_async_tools(self):
         """Test that both sync and async tools can coexist."""
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
 
         @app.tool()
         def sync_tool(x: int) -> int:
@@ -76,7 +76,7 @@ class TestAsyncToolExecution:
     @pytest.mark.asyncio
     async def test_basic_async_tool(self):
         """Test that async tools execute correctly."""
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
 
         @app.tool()
         async def add(a: int, b: int) -> int:
@@ -89,7 +89,7 @@ class TestAsyncToolExecution:
     @pytest.mark.asyncio
     async def test_async_tool_with_await(self):
         """Test async tool that awaits other async operations."""
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
 
         async def fetch_data():
             await asyncio.sleep(0.01)
@@ -108,7 +108,7 @@ class TestAsyncToolExecution:
     @pytest.mark.asyncio
     async def test_concurrent_async_tools(self):
         """Test that async tools can run concurrently."""
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
 
         @app.tool()
         async def slow_task(duration: float, value: int) -> int:
@@ -135,7 +135,7 @@ class TestAsyncMiddleware:
     @pytest.mark.asyncio
     async def test_log_calls_async(self):
         """Test async logging middleware."""
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
         app.add_middleware(log_calls_async)
 
         @app.tool()
@@ -148,7 +148,7 @@ class TestAsyncMiddleware:
     @pytest.mark.asyncio
     async def test_error_handler_async(self):
         """Test async error handling middleware."""
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
         app.add_middleware(error_handler_async)
 
         @app.tool()
@@ -163,7 +163,7 @@ class TestAsyncMiddleware:
     @pytest.mark.asyncio
     async def test_rate_limit_async(self):
         """Test async rate limiting middleware."""
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
         app.add_middleware(rate_limit_async(max_calls=2, time_window=1))
 
         @app.tool()
@@ -185,7 +185,7 @@ class TestAsyncMiddleware:
         """Test async result caching middleware."""
         call_count = {"count": 0}
 
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
 
         @app.tool()
         @cache_results_async(ttl_seconds=1)
@@ -212,7 +212,7 @@ class TestAsyncMiddleware:
     @pytest.mark.asyncio
     async def test_timeout_async(self):
         """Test async timeout middleware."""
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
 
         @app.tool()
         @timeout_async(seconds=1)
@@ -237,7 +237,7 @@ class TestAsyncMiddleware:
     @pytest.mark.asyncio
     async def test_require_auth_async(self):
         """Test async authentication middleware."""
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
         app.add_middleware(require_auth_async(valid_keys={"secret-key"}))
 
         @app.tool()
@@ -275,7 +275,7 @@ class TestAsyncMiddlewareStacking:
                 return wrapper
             return middleware
 
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
         app.add_middleware(make_tracking_middleware("first"))
         app.add_middleware(make_tracking_middleware("second"))
 
@@ -299,7 +299,7 @@ class TestAsyncMiddlewareStacking:
     @pytest.mark.asyncio
     async def test_async_middleware_with_error_handler(self):
         """Test that error handler works with other async middleware."""
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
         app.add_middleware(log_calls_async)
         app.add_middleware(error_handler_async)
 
@@ -319,7 +319,7 @@ class TestAsyncPerformance:
     @pytest.mark.asyncio
     async def test_concurrent_execution_is_faster(self):
         """Verify that concurrent async execution is faster than sequential."""
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
 
         @app.tool()
         async def slow_operation(duration: float) -> str:
@@ -354,7 +354,7 @@ class TestAsyncEdgeCases:
     @pytest.mark.asyncio
     async def test_async_tool_with_exception(self):
         """Test that exceptions in async tools are properly raised."""
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
 
         @app.tool()
         async def failing_tool() -> int:
@@ -366,7 +366,7 @@ class TestAsyncEdgeCases:
     @pytest.mark.asyncio
     async def test_async_tool_returns_none(self):
         """Test async tools that return None."""
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
 
         @app.tool()
         async def none_tool() -> None:
@@ -379,7 +379,7 @@ class TestAsyncEdgeCases:
     @pytest.mark.asyncio
     async def test_async_tool_with_default_args(self):
         """Test async tools with default arguments."""
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
 
         @app.tool()
         async def tool_with_defaults(a: int, b: int = 10) -> int:

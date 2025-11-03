@@ -1,5 +1,5 @@
 """
-Setup script for SecureMCP
+Setup script for NextMCP
 
 This setup.py is maintained for backward compatibility and editable installs.
 The primary build configuration is in pyproject.toml.
@@ -13,13 +13,13 @@ this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text(encoding="utf-8")
 
 setup(
-    name="securemcp",
+    name="nextmcp",
     version="0.1.0",
-    author="SecureMCP Contributors",
+    author="NextMCP Contributors",
     description="Production-grade MCP server toolkit with minimal boilerplate",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/securemcp",
+    url="https://github.com/KeshavVarad/NextMCP",
     packages=find_packages(exclude=["tests", "tests.*", "examples", "examples.*"]),
     classifiers=[
         "Development Status :: 3 - Alpha",
@@ -60,7 +60,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "mcp=securemcp.cli:main",
+            "mcp=nextmcp.cli:main",
         ],
     },
     include_package_data=True,

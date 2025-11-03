@@ -1,11 +1,11 @@
 # Weather Bot Example
 
-A simple weather information MCP server built with SecureMCP.
+A simple weather information MCP server built with NextMCP.
 
 ## Features
 
 This example demonstrates:
-- Basic SecureMCP application setup
+- Basic NextMCP application setup
 - Tool registration with decorators
 - Global middleware (logging, error handling)
 - Configuration management

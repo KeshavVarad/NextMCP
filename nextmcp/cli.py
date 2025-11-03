@@ -1,5 +1,5 @@
 """
-CLI commands for SecureMCP using Typer.
+CLI commands for NextMCP using Typer.
 
 Provides commands for:
 - Initializing new projects
@@ -27,8 +27,8 @@ logger = logging.getLogger(__name__)
 # Create CLI app if typer is available
 if typer:
     app = typer.Typer(
-        name="securemcp",
-        help="SecureMCP - Production-grade MCP server toolkit",
+        name="nextmcp",
+        help="NextMCP - Production-grade MCP server toolkit",
         add_completion=False,
     )
     console = Console() if Console else None
@@ -44,7 +44,7 @@ def get_template_dir() -> Path:
 
 def get_examples_dir() -> Path:
     """Get the path to the examples directory."""
-    # Go up one level from securemcp package to root
+    # Go up one level from nextmcp package to root
     return Path(__file__).parent.parent / "examples"
 
 
@@ -66,7 +66,7 @@ if app:
         )
     ):
         """
-        Initialize a new SecureMCP project from a template.
+        Initialize a new NextMCP project from a template.
 
         Creates a new directory with boilerplate code to get started quickly.
 
@@ -126,7 +126,7 @@ if app:
     def run(
         app_file: str = typer.Argument(
             "app.py",
-            help="Python file containing the SecureMCP application"
+            help="Python file containing the NextMCP application"
         ),
         host: str = typer.Option(
             "127.0.0.1",
@@ -148,7 +148,7 @@ if app:
         )
     ):
         """
-        Run a SecureMCP application.
+        Run a NextMCP application.
 
         Example:
             mcp run app.py
@@ -166,7 +166,7 @@ if app:
                 raise typer.Exit(code=1)
 
             if console:
-                console.print(f"[blue]Starting SecureMCP server...[/blue]")
+                console.print(f"[blue]Starting NextMCP server...[/blue]")
                 console.print(f"  File: {app_file}")
                 console.print(f"  Host: {host}")
                 console.print(f"  Port: {port}")
@@ -200,7 +200,7 @@ if app:
     def docs(
         app_file: str = typer.Argument(
             "app.py",
-            help="Python file containing the SecureMCP application"
+            help="Python file containing the NextMCP application"
         ),
         output: Optional[str] = typer.Option(
             None,
@@ -224,7 +224,7 @@ if app:
             mcp docs app.py --format json
         """
         try:
-            from securemcp.tools import generate_tool_docs
+            from nextmcp.tools import generate_tool_docs
 
             app_path = Path(app_file)
 
@@ -242,18 +242,18 @@ if app:
             namespace = {}
             exec(code, namespace)
 
-            # Find SecureMCP instance in namespace
+            # Find NextMCP instance in namespace
             app_instance = None
             for value in namespace.values():
-                if hasattr(value, "_tools"):  # Duck typing for SecureMCP
+                if hasattr(value, "_tools"):  # Duck typing for NextMCP
                     app_instance = value
                     break
 
             if not app_instance:
                 if console:
-                    console.print("[yellow]Warning:[/yellow] No SecureMCP instance found in app file")
+                    console.print("[yellow]Warning:[/yellow] No NextMCP instance found in app file")
                 else:
-                    print("Warning: No SecureMCP instance found in app file")
+                    print("Warning: No NextMCP instance found in app file")
                 raise typer.Exit(code=1)
 
             # Generate documentation
@@ -261,7 +261,7 @@ if app:
                 doc_content = generate_tool_docs(app_instance._tools)
             elif format == "json":
                 import json
-                from securemcp.tools import get_tool_metadata
+                from nextmcp.tools import get_tool_metadata
                 tools_metadata = {
                     name: get_tool_metadata(fn)
                     for name, fn in app_instance._tools.items()
@@ -294,17 +294,17 @@ if app:
 
     @app.command()
     def version():
-        """Show SecureMCP version information."""
+        """Show NextMCP version information."""
         try:
-            from securemcp import __version__
+            from nextmcp import __version__
             version_str = __version__
         except ImportError:
             version_str = "unknown"
 
         if console:
-            console.print(f"SecureMCP version: {version_str}")
+            console.print(f"NextMCP version: {version_str}")
         else:
-            print(f"SecureMCP version: {version_str}")
+            print(f"NextMCP version: {version_str}")
 
 
 def main():
