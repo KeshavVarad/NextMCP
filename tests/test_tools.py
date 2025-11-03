@@ -1,9 +1,9 @@
 """
-Unit tests for securemcp.tools module
+Unit tests for nextmcp.tools module
 """
 
 import pytest
-from securemcp.tools import tool, get_tool_metadata, generate_tool_docs, ToolRegistry
+from nextmcp.tools import tool, get_tool_metadata, generate_tool_docs, ToolRegistry
 
 
 def test_tool_decorator_basic():

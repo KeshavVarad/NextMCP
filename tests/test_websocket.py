@@ -12,8 +12,8 @@ This module tests:
 import pytest
 import asyncio
 import json
-from securemcp import SecureMCP
-from securemcp.transport import WebSocketTransport, WebSocketClient, WSMessage
+from nextmcp import NextMCP
+from nextmcp.transport import WebSocketTransport, WebSocketClient, WSMessage
 
 # Skip all tests if websockets is not available
 pytest.importorskip("websockets")
@@ -74,7 +74,7 @@ class TestWebSocketTransport:
     @pytest.mark.asyncio
     async def test_server_creation(self):
         """Test creating a WebSocket transport server."""
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
 
         @app.tool()
         async def test_tool(x: int) -> int:
@@ -87,7 +87,7 @@ class TestWebSocketTransport:
     @pytest.mark.asyncio
     async def test_server_start_stop(self):
         """Test starting and stopping the server."""
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
         transport = WebSocketTransport(app)
 
         # Start server in background
@@ -110,7 +110,7 @@ class TestWebSocketTransport:
     @pytest.mark.asyncio
     async def test_client_connection(self):
         """Test client connecting to server."""
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
 
         @app.tool()
         async def add(a: int, b: int) -> int:
@@ -143,7 +143,7 @@ class TestWebSocketTransport:
     @pytest.mark.asyncio
     async def test_list_tools_over_websocket(self):
         """Test listing tools over WebSocket."""
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
 
         @app.tool()
         async def tool1(x: int) -> int:
@@ -186,7 +186,7 @@ class TestWebSocketTransport:
     @pytest.mark.asyncio
     async def test_invoke_async_tool_over_websocket(self):
         """Test invoking an async tool over WebSocket."""
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
 
         @app.tool()
         async def multiply(x: int, y: int) -> int:
@@ -218,7 +218,7 @@ class TestWebSocketTransport:
     @pytest.mark.asyncio
     async def test_invoke_sync_tool_over_websocket(self):
         """Test invoking a sync tool over WebSocket."""
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
 
         @app.tool()
         def add(x: int, y: int) -> int:
@@ -249,7 +249,7 @@ class TestWebSocketTransport:
     @pytest.mark.asyncio
     async def test_concurrent_tool_invocations(self):
         """Test multiple concurrent tool invocations."""
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
 
         @app.tool()
         async def slow_double(x: int) -> int:
@@ -286,7 +286,7 @@ class TestWebSocketTransport:
     @pytest.mark.asyncio
     async def test_tool_not_found_error(self):
         """Test error when tool is not found."""
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
 
         @app.tool()
         async def existing_tool() -> str:
@@ -317,7 +317,7 @@ class TestWebSocketTransport:
     @pytest.mark.asyncio
     async def test_invalid_parameters_error(self):
         """Test error when parameters are invalid."""
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
 
         @app.tool()
         async def requires_params(x: int, y: int) -> int:
@@ -348,7 +348,7 @@ class TestWebSocketTransport:
     @pytest.mark.asyncio
     async def test_ping_pong(self):
         """Test ping/pong for connection health."""
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
         transport = WebSocketTransport(app)
 
         # Start server
@@ -374,7 +374,7 @@ class TestWebSocketTransport:
     @pytest.mark.asyncio
     async def test_multiple_clients(self):
         """Test multiple clients connecting to the same server."""
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
 
         @app.tool()
         async def get_value(x: int) -> int:
@@ -414,7 +414,7 @@ class TestWebSocketClient:
     @pytest.mark.asyncio
     async def test_client_context_manager(self):
         """Test client as async context manager."""
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
         transport = WebSocketTransport(app)
 
         server_task = asyncio.create_task(
@@ -440,7 +440,7 @@ class TestWebSocketClient:
     @pytest.mark.asyncio
     async def test_client_manual_connect_disconnect(self):
         """Test manual connect and disconnect."""
-        app = SecureMCP("test-app")
+        app = NextMCP("test-app")
         transport = WebSocketTransport(app)
 
         server_task = asyncio.create_task(

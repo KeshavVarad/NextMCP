@@ -1,6 +1,6 @@
 # Async Weather Bot Example
 
-This example demonstrates how to build an async MCP server using SecureMCP with full async/await support.
+This example demonstrates how to build an async MCP server using NextMCP with full async/await support.
 
 ## Features
 
@@ -65,7 +65,7 @@ async def my_async_tool(param: str) -> dict:
 ### Async Middleware
 
 ```python
-from securemcp import log_calls_async, error_handler_async
+from nextmcp import log_calls_async, error_handler_async
 
 app.add_middleware(log_calls_async)
 app.add_middleware(error_handler_async)

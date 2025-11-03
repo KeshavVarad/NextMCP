@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "securemcp"
+name = "nextmcp"
 version = "0.1.0"
 description = "Production-grade MCP server toolkit with minimal boilerplate"
 readme = "README.md"
@@ -11,7 +11,7 @@ requires-python = ">=3.8"
 license = {text = "MIT"}
 keywords = ["mcp", "server", "sdk", "fastmcp", "framework"]
 authors = [
-    {name = "SecureMCP Contributors"}
+    {name = "NextMCP Contributors"}
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -55,23 +55,23 @@ websocket = [
     "websockets>=12.0",
 ]
 all = [
-    "securemcp[dev,cli,config,schema,websocket]",
+    "nextmcp[dev,cli,config,schema,websocket]",
 ]
 
 [project.scripts]
-mcp = "securemcp.cli:main"
+mcp = "nextmcp.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/yourusername/securemcp"
-Documentation = "https://github.com/yourusername/securemcp#readme"
-Repository = "https://github.com/yourusername/securemcp"
-Issues = "https://github.com/yourusername/securemcp/issues"
+Homepage = "https://github.com/KeshavVarad/NextMCP"
+Documentation = "https://github.com/KeshavVarad/NextMCP#readme"
+Repository = "https://github.com/KeshavVarad/NextMCP"
+Issues = "https://github.com/KeshavVarad/NextMCP/issues"
 
 [tool.setuptools]
-packages = ["securemcp"]
+packages = ["nextmcp"]
 
 [tool.setuptools.package-data]
-securemcp = ["py.typed"]
+nextmcp = ["py.typed"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

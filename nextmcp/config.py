@@ -1,5 +1,5 @@
 """
-Configuration management for SecureMCP applications.
+Configuration management for NextMCP applications.
 
 Supports loading configuration from:
 - .env files
@@ -72,7 +72,7 @@ class Config:
             self.load_yaml(config_file)
         else:
             # Try default locations
-            for default_path in ["config.yaml", "config.yml", "securemcp.yaml"]:
+            for default_path in ["config.yaml", "config.yml", "nextmcp.yaml"]:
                 if Path(default_path).exists():
                     self.load_yaml(default_path)
                     break

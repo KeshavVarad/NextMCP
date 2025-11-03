@@ -1,5 +1,5 @@
 """
-Centralized logging setup for SecureMCP applications.
+Centralized logging setup for NextMCP applications.
 
 Provides consistent logging configuration across the framework and user applications.
 """
@@ -52,7 +52,7 @@ def setup_logging(
     use_colors: bool = True,
 ) -> None:
     """
-    Configure logging for SecureMCP applications.
+    Configure logging for NextMCP applications.
 
     Args:
         level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
@@ -61,7 +61,7 @@ def setup_logging(
         use_colors: Whether to use colored output in terminal (default: True)
 
     Example:
-        from securemcp.logging import setup_logging
+        from nextmcp.logging import setup_logging
 
         setup_logging(level="DEBUG", log_file="app.log")
     """
@@ -103,8 +103,8 @@ def setup_logging(
         file_handler.setFormatter(file_formatter)
         root_logger.addHandler(file_handler)
 
-    # Set logging level for securemcp package
-    logging.getLogger("securemcp").setLevel(numeric_level)
+    # Set logging level for nextmcp package
+    logging.getLogger("nextmcp").setLevel(numeric_level)
 
 
 def get_logger(name: str, level: Optional[str] = None) -> logging.Logger:
@@ -119,7 +119,7 @@ def get_logger(name: str, level: Optional[str] = None) -> logging.Logger:
         Logger instance
 
     Example:
-        from securemcp.logging import get_logger
+        from nextmcp.logging import get_logger
 
         logger = get_logger(__name__)
         logger.info("Application started")
@@ -191,5 +191,5 @@ def log_function_call(logger: logging.Logger = None):
     return decorator
 
 
-# Default logger for the securemcp package
-logger = get_logger("securemcp")
+# Default logger for the nextmcp package
+logger = get_logger("nextmcp")

@@ -1,1 +1,1 @@
-"""Tests for SecureMCP"""
+"""Tests for NextMCP"""

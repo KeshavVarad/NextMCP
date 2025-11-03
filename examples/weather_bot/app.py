@@ -1,14 +1,14 @@
 """
-Weather Bot - Example SecureMCP Application
+Weather Bot - Example NextMCP Application
 
 This example demonstrates:
-- Creating a SecureMCP application
+- Creating a NextMCP application
 - Registering tools with decorators
 - Using middleware for logging and error handling
 - Configuration management
 """
 
-from securemcp import SecureMCP, setup_logging, log_calls, error_handler
+from nextmcp import NextMCP, setup_logging, log_calls, error_handler
 from typing import Optional
 import random
 
@@ -16,7 +16,7 @@ import random
 setup_logging(level="INFO")
 
 # Create the MCP application
-app = SecureMCP(
+app = NextMCP(
     name="weather-bot",
     description="A simple weather information MCP server"
 )

@@ -1,14 +1,14 @@
 """
-Unit tests for securemcp.core module
+Unit tests for nextmcp.core module
 """
 
 import pytest
-from securemcp.core import SecureMCP
+from nextmcp.core import NextMCP
 
 
-def test_securemcp_initialization():
-    """Test that SecureMCP can be initialized with a name"""
-    app = SecureMCP("test-app")
+def test_nextmcp_initialization():
+    """Test that NextMCP can be initialized with a name"""
+    app = NextMCP("test-app")
     assert app.name == "test-app"
     assert app.description == "test-app MCP Server"
     assert len(app._tools) == 0
@@ -17,7 +17,7 @@ def test_securemcp_initialization():
 
 def test_tool_registration():
     """Test that tools can be registered with the @tool decorator"""
-    app = SecureMCP("test-app")
+    app = NextMCP("test-app")
 
     @app.tool()
     def test_tool(x: int) -> int:
@@ -29,7 +29,7 @@ def test_tool_registration():
 
 def test_tool_registration_with_custom_name():
     """Test tool registration with custom name"""
-    app = SecureMCP("test-app")
+    app = NextMCP("test-app")
 
     @app.tool(name="custom_name")
     def my_tool():
@@ -41,7 +41,7 @@ def test_tool_registration_with_custom_name():
 
 def test_global_middleware():
     """Test that global middleware is applied to all tools"""
-    app = SecureMCP("test-app")
+    app = NextMCP("test-app")
 
     # Create a middleware that adds 1 to the result
     def add_one_middleware(fn):
@@ -62,7 +62,7 @@ def test_global_middleware():
 
 def test_multiple_middleware_stacking():
     """Test that multiple middleware are applied in correct order"""
-    app = SecureMCP("test-app")
+    app = NextMCP("test-app")
 
     # First middleware: multiply by 2
     def multiply_middleware(fn):
@@ -94,7 +94,7 @@ def test_multiple_middleware_stacking():
 
 def test_get_tools():
     """Test that get_tools returns a copy of registered tools"""
-    app = SecureMCP("test-app")
+    app = NextMCP("test-app")
 
     @app.tool()
     def tool1():
@@ -116,7 +116,7 @@ def test_get_tools():
 
 def test_tool_with_description():
     """Test tool registration with description"""
-    app = SecureMCP("test-app")
+    app = NextMCP("test-app")
 
     @app.tool(description="This is a test tool")
     def described_tool():

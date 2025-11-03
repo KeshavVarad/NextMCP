@@ -1,5 +1,5 @@
 """
-Middleware utilities for SecureMCP.
+Middleware utilities for NextMCP.
 
 Middleware functions wrap tool functions to add cross-cutting concerns
 like logging, authentication, rate limiting, error handling, etc.
