@@ -4,7 +4,7 @@ JSON format exporter for metrics.
 
 import json
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 from nextmcp.metrics.registry import MetricsRegistry
 from nextmcp.metrics.types import Counter, Gauge, Histogram, Summary
@@ -44,14 +44,14 @@ class JSONExporter:
             return json.dumps(data, indent=2, sort_keys=True)
         return json.dumps(data)
 
-    def export_dict(self) -> Dict[str, Any]:
+    def export_dict(self) -> dict[str, Any]:
         """
         Export all metrics as a dictionary.
 
         Returns:
             Dictionary containing all metrics
         """
-        metrics_by_type: Dict[str, List[Dict[str, Any]]] = {
+        metrics_by_type: dict[str, list[dict[str, Any]]] = {
             "counters": [],
             "gauges": [],
             "histograms": [],
@@ -73,7 +73,7 @@ class JSONExporter:
             "total_metrics": len(self.registry.list_metrics()),
         }
 
-    def _export_counter(self, counter: Counter) -> Dict[str, Any]:
+    def _export_counter(self, counter: Counter) -> dict[str, Any]:
         """Export a counter metric."""
         return {
             "name": counter.name,
@@ -83,7 +83,7 @@ class JSONExporter:
             "value": counter.get(),
         }
 
-    def _export_gauge(self, gauge: Gauge) -> Dict[str, Any]:
+    def _export_gauge(self, gauge: Gauge) -> dict[str, Any]:
         """Export a gauge metric."""
         return {
             "name": gauge.name,
@@ -93,7 +93,7 @@ class JSONExporter:
             "value": gauge.get(),
         }
 
-    def _export_histogram(self, histogram: Histogram) -> Dict[str, Any]:
+    def _export_histogram(self, histogram: Histogram) -> dict[str, Any]:
         """Export a histogram metric."""
         buckets = histogram.get_buckets()
         count = histogram.get_count()
@@ -110,7 +110,7 @@ class JSONExporter:
             "buckets": {str(k) if k != float("inf") else "+Inf": v for k, v in buckets.items()},
         }
 
-    def _export_summary(self, summary: Summary) -> Dict[str, Any]:
+    def _export_summary(self, summary: Summary) -> dict[str, Any]:
         """Export a summary metric."""
         count = summary.get_count()
         total = summary.get_sum()

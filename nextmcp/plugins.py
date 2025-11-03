@@ -26,7 +26,7 @@ import inspect
 import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class PluginMetadata:
         version: str,
         description: str = "",
         author: str = "",
-        dependencies: Optional[List[str]] = None,
+        dependencies: list[str] | None = None,
     ):
         self.name = name
         self.version = version
@@ -83,7 +83,7 @@ class Plugin(ABC):
     version: str = "0.0.0"
     description: str = ""
     author: str = ""
-    dependencies: List[str] = []
+    dependencies: list[str] = []
 
     def __init__(self):
         """Initialize the plugin."""
@@ -154,8 +154,8 @@ class PluginManager:
             app: The NextMCP application instance
         """
         self.app = app
-        self._plugins: Dict[str, Plugin] = {}
-        self._plugin_paths: List[Path] = []
+        self._plugins: dict[str, Plugin] = {}
+        self._plugin_paths: list[Path] = []
 
         logger.info("Initialized PluginManager")
 
@@ -175,7 +175,7 @@ class PluginManager:
         self._plugins[plugin.name] = plugin
         logger.info(f"Registered plugin: {plugin.name} v{plugin.version}")
 
-    def register_plugin_class(self, plugin_class: Type[Plugin]) -> None:
+    def register_plugin_class(self, plugin_class: type[Plugin]) -> None:
         """
         Register a plugin class (will be instantiated).
 
@@ -341,7 +341,7 @@ class PluginManager:
                 except Exception as e:
                     logger.error(f"Failed to register plugin {name}: {e}")
 
-    def get_plugin(self, name: str) -> Optional[Plugin]:
+    def get_plugin(self, name: str) -> Plugin | None:
         """
         Get a plugin by name.
 
@@ -353,7 +353,7 @@ class PluginManager:
         """
         return self._plugins.get(name)
 
-    def list_plugins(self) -> List[Dict[str, Any]]:
+    def list_plugins(self) -> list[dict[str, Any]]:
         """
         List all registered plugins with their metadata.
 

@@ -11,7 +11,7 @@ Supports loading configuration from:
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 try:
     from dotenv import load_dotenv
@@ -38,8 +38,8 @@ class Config:
 
     def __init__(
         self,
-        config_file: Optional[str] = None,
-        env_file: Optional[str] = ".env",
+        config_file: str | None = None,
+        env_file: str | None = ".env",
         load_env: bool = True,
     ):
         """
@@ -50,8 +50,8 @@ class Config:
             env_file: Path to .env file (default: .env)
             load_env: Whether to load .env file (default: True)
         """
-        self._config: Dict[str, Any] = {}
-        self._defaults: Dict[str, Any] = {
+        self._config: dict[str, Any] = {}
+        self._defaults: dict[str, Any] = {
             "host": "127.0.0.1",
             "port": 8000,
             "log_level": "INFO",
@@ -108,7 +108,7 @@ class Config:
             logger.error(f"Error loading config from {file_path}: {e}")
             raise
 
-    def get(self, key: str, default: Any = None, env_var: Optional[str] = None) -> Any:
+    def get(self, key: str, default: Any = None, env_var: str | None = None) -> Any:
         """
         Get a configuration value.
 
@@ -198,7 +198,7 @@ class Config:
         """Check if debug mode is enabled."""
         return bool(self.get("debug", self._defaults["debug"], "DEBUG"))
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """
         Get all configuration as a dictionary.
 
@@ -220,7 +220,7 @@ class Config:
         return key in self._config
 
 
-def load_config(config_file: Optional[str] = None, env_file: str = ".env", **overrides) -> Config:
+def load_config(config_file: str | None = None, env_file: str = ".env", **overrides) -> Config:
     """
     Convenience function to load configuration.
 

@@ -5,7 +5,7 @@ middleware support, and server lifecycle management.
 
 import inspect
 import logging
-from typing import Callable, Dict, List, Optional
+from collections.abc import Callable
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ class NextMCP:
         app.run()
     """
 
-    def __init__(self, name: str, description: Optional[str] = None):
+    def __init__(self, name: str, description: str | None = None):
         """
         Initialize a new NextMCP application.
 
@@ -37,8 +37,8 @@ class NextMCP:
         """
         self.name = name
         self.description = description or f"{name} MCP Server"
-        self._tools: Dict[str, Callable] = {}
-        self._global_middleware: List[Callable] = []
+        self._tools: dict[str, Callable] = {}
+        self._global_middleware: list[Callable] = []
         self._fastmcp_server = None
         self._plugin_manager = None
         self._metrics_collector = None
@@ -69,7 +69,7 @@ class NextMCP:
         middleware_name = getattr(middleware_fn, "__name__", middleware_fn.__class__.__name__)
         logger.debug(f"Added global middleware: {middleware_name}")
 
-    def tool(self, name: Optional[str] = None, description: Optional[str] = None):
+    def tool(self, name: str | None = None, description: str | None = None):
         """
         Decorator to register a function as an MCP tool.
 
@@ -112,7 +112,7 @@ class NextMCP:
 
         return decorator
 
-    def get_tools(self) -> Dict[str, Callable]:
+    def get_tools(self) -> dict[str, Callable]:
         """
         Get all registered tools.
 
@@ -219,7 +219,7 @@ class NextMCP:
         collect_tool_metrics: bool = True,
         collect_system_metrics: bool = False,
         collect_transport_metrics: bool = False,
-        labels: Optional[Dict[str, str]] = None,
+        labels: dict[str, str] | None = None,
     ) -> None:
         """
         Enable automatic metrics collection.

@@ -7,8 +7,9 @@ with optional Pydantic schema validation.
 
 import inspect
 import logging
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable, Optional, Type, get_type_hints
+from typing import Any, get_type_hints
 
 try:
     from pydantic import BaseModel, ValidationError
@@ -20,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 def tool(
-    schema: Optional[Type] = None, name: Optional[str] = None, description: Optional[str] = None
+    schema: type | None = None, name: str | None = None, description: str | None = None
 ):
     """
     Standalone decorator for defining tools with optional schema validation.
@@ -168,7 +169,7 @@ class ToolRegistry:
         self._tools: dict = {}
         self._namespaces: dict = {}
 
-    def register(self, fn: Callable, namespace: Optional[str] = None):
+    def register(self, fn: Callable, namespace: str | None = None):
         """
         Register a tool function, optionally in a namespace.
 
@@ -189,7 +190,7 @@ class ToolRegistry:
         self._tools[full_name] = fn
         logger.debug(f"Registered tool in registry: {full_name}")
 
-    def get(self, name: str) -> Optional[Callable]:
+    def get(self, name: str) -> Callable | None:
         """Get a tool by its full name."""
         return self._tools.get(name)
 

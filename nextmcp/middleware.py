@@ -7,9 +7,9 @@ like logging, authentication, rate limiting, error handling, etc.
 
 import logging
 import time
+from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
 from functools import wraps
-from typing import Callable, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +42,7 @@ def log_calls(fn: Callable) -> Callable:
     return wrapper
 
 
-def require_auth(api_key_param: str = "auth_key", valid_keys: Optional[set] = None):
+def require_auth(api_key_param: str = "auth_key", valid_keys: set | None = None):
     """
     Middleware factory that requires authentication via an API key.
 
@@ -119,7 +119,7 @@ def rate_limit(max_calls: int, time_window: int):
         # Allow 10 calls per minute
         app.add_middleware(rate_limit(max_calls=10, time_window=60))
     """
-    call_history: Dict[str, list] = {}
+    call_history: dict[str, list] = {}
 
     def middleware(fn: Callable) -> Callable:
         @wraps(fn)
@@ -213,7 +213,7 @@ def cache_results(ttl_seconds: int = 300):
         def expensive_operation(param: str):
             return perform_expensive_computation(param)
     """
-    cache: Dict[str, tuple] = {}  # key -> (result, expiry_time)
+    cache: dict[str, tuple] = {}  # key -> (result, expiry_time)
 
     def middleware(fn: Callable) -> Callable:
         @wraps(fn)
@@ -327,7 +327,7 @@ def log_calls_async(fn: Callable) -> Callable:
     return wrapper
 
 
-def require_auth_async(api_key_param: str = "auth_key", valid_keys: Optional[set] = None):
+def require_auth_async(api_key_param: str = "auth_key", valid_keys: set | None = None):
     """
     Async middleware factory that requires authentication via an API key.
 
@@ -413,7 +413,7 @@ def rate_limit_async(max_calls: int, time_window: int):
         async def rate_limited_tool(data: str):
             return await process_data(data)
     """
-    call_history: Dict[str, list] = {}
+    call_history: dict[str, list] = {}
 
     def middleware(fn: Callable) -> Callable:
         @wraps(fn)
@@ -465,7 +465,7 @@ def cache_results_async(ttl_seconds: int = 300):
         async def expensive_operation(param: str):
             return await perform_expensive_computation(param)
     """
-    cache: Dict[str, tuple] = {}  # key -> (result, expiry_time)
+    cache: dict[str, tuple] = {}  # key -> (result, expiry_time)
 
     def middleware(fn: Callable) -> Callable:
         @wraps(fn)

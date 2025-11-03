@@ -7,13 +7,12 @@ Provides Counter, Gauge, Histogram, and Summary metric types.
 import threading
 import time
 from datetime import datetime, timezone
-from typing import Dict, List, Optional
 
 
 class Metric:
     """Base class for all metrics."""
 
-    def __init__(self, name: str, description: str = "", labels: Optional[Dict[str, str]] = None):
+    def __init__(self, name: str, description: str = "", labels: dict[str, str] | None = None):
         """
         Initialize a metric.
 
@@ -43,7 +42,7 @@ class Counter(Metric):
     Use for: request counts, error counts, completed operations.
     """
 
-    def __init__(self, name: str, description: str = "", labels: Optional[Dict[str, str]] = None):
+    def __init__(self, name: str, description: str = "", labels: dict[str, str] | None = None):
         super().__init__(name, description, labels)
         self._value = 0.0
 
@@ -78,7 +77,7 @@ class Gauge(Metric):
     Use for: temperatures, memory usage, queue sizes, active connections.
     """
 
-    def __init__(self, name: str, description: str = "", labels: Optional[Dict[str, str]] = None):
+    def __init__(self, name: str, description: str = "", labels: dict[str, str] | None = None):
         super().__init__(name, description, labels)
         self._value = 0.0
 
@@ -132,8 +131,8 @@ class Histogram(Metric):
         self,
         name: str,
         description: str = "",
-        labels: Optional[Dict[str, str]] = None,
-        buckets: Optional[List[float]] = None,
+        labels: dict[str, str] | None = None,
+        buckets: list[float] | None = None,
     ):
         super().__init__(name, description, labels)
         self.buckets = sorted(buckets or self.DEFAULT_BUCKETS)
@@ -171,7 +170,7 @@ class Histogram(Metric):
         with self._lock:
             return self._sum
 
-    def get_buckets(self) -> Dict[float, int]:
+    def get_buckets(self) -> dict[float, int]:
         """Get bucket counts."""
         with self._lock:
             return self._bucket_counts.copy()
@@ -215,12 +214,12 @@ class Summary(Metric):
         self,
         name: str,
         description: str = "",
-        labels: Optional[Dict[str, str]] = None,
+        labels: dict[str, str] | None = None,
         max_age: int = 600,  # 10 minutes
         max_samples: int = 1000,
     ):
         super().__init__(name, description, labels)
-        self._samples: List[float] = []
+        self._samples: list[float] = []
         self._sum = 0.0
         self._count = 0
         self.max_age = max_age
@@ -271,7 +270,7 @@ class Summary(Metric):
             index = min(index, len(sorted_samples) - 1)
             return sorted_samples[index]
 
-    def get_percentiles(self) -> Dict[str, float]:
+    def get_percentiles(self) -> dict[str, float]:
         """Get common percentiles (p50, p90, p95, p99)."""
         return {
             "p50": self.get_percentile(50),

@@ -6,7 +6,7 @@ import functools
 import inspect
 import logging
 import time
-from typing import Callable, Optional
+from collections.abc import Callable
 
 from nextmcp.metrics.collector import MetricsCollector
 from nextmcp.metrics.config import MetricsConfig
@@ -27,8 +27,8 @@ class MetricsMiddleware:
 
     def __init__(
         self,
-        collector: Optional[MetricsCollector] = None,
-        config: Optional[MetricsConfig] = None,
+        collector: MetricsCollector | None = None,
+        config: MetricsConfig | None = None,
     ):
         """
         Initialize metrics middleware.
@@ -174,8 +174,8 @@ class MetricsMiddleware:
 
 
 def metrics_middleware(
-    collector: Optional[MetricsCollector] = None,
-    config: Optional[MetricsConfig] = None,
+    collector: MetricsCollector | None = None,
+    config: MetricsConfig | None = None,
 ) -> Callable:
     """
     Create a metrics middleware function.

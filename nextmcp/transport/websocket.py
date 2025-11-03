@@ -10,7 +10,7 @@ import inspect
 import json
 import logging
 from dataclasses import asdict, dataclass
-from typing import Any, Dict, Optional, Set
+from typing import Any
 
 try:
     from websockets.asyncio.server import ServerConnection, serve
@@ -30,11 +30,11 @@ logger = logging.getLogger(__name__)
 class WSMessage:
     """WebSocket message structure following JSON-RPC pattern."""
 
-    id: Optional[str] = None
-    method: Optional[str] = None
-    params: Optional[Dict[str, Any]] = None
-    result: Optional[Any] = None
-    error: Optional[Dict[str, Any]] = None
+    id: str | None = None
+    method: str | None = None
+    params: dict[str, Any] | None = None
+    result: Any | None = None
+    error: dict[str, Any] | None = None
 
     def to_json(self) -> str:
         """Convert message to JSON string."""
@@ -48,7 +48,7 @@ class WSMessage:
         return cls(**parsed)
 
     @classmethod
-    def request(cls, id: str, method: str, params: Optional[Dict[str, Any]] = None) -> "WSMessage":
+    def request(cls, id: str, method: str, params: dict[str, Any] | None = None) -> "WSMessage":
         """Create a request message."""
         return cls(id=id, method=method, params=params or {})
 
@@ -59,7 +59,7 @@ class WSMessage:
 
     @classmethod
     def error_response(
-        cls, id: Optional[str], error_message: str, error_code: int = -1
+        cls, id: str | None, error_message: str, error_code: int = -1
     ) -> "WSMessage":
         """Create an error response message."""
         return cls(id=id, error={"code": error_code, "message": error_message})
@@ -97,7 +97,7 @@ class WebSocketTransport:
             )
 
         self.app = app
-        self.connections: Set[WebSocketServerProtocol] = set()
+        self.connections: set[WebSocketServerProtocol] = set()
         self.server = None
         self._stop_event = asyncio.Event()
 

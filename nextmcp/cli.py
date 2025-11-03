@@ -11,7 +11,6 @@ import logging
 import shutil
 import sys
 from pathlib import Path
-from typing import Optional
 
 try:
     import typer
@@ -56,7 +55,7 @@ if app:
         template: str = typer.Option(
             "weather_bot", "--template", "-t", help="Template to use (default: weather_bot)"
         ),
-        path: Optional[str] = typer.Option(
+        path: str | None = typer.Option(
             None, "--path", "-p", help="Custom path for the project (default: ./<name>)"
         ),
     ):
@@ -181,7 +180,7 @@ if app:
         app_file: str = typer.Argument(
             "app.py", help="Python file containing the NextMCP application"
         ),
-        output: Optional[str] = typer.Option(
+        output: str | None = typer.Option(
             None, "--output", "-o", help="Output file for documentation (default: stdout)"
         ),
         format: str = typer.Option(

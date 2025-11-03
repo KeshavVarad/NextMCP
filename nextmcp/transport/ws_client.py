@@ -7,7 +7,8 @@ Provides a simple client interface for invoking tools over WebSocket.
 import asyncio
 import logging
 import uuid
-from typing import Any, Callable, Dict, Optional
+from collections.abc import Callable
+from typing import Any
 
 try:
     from websockets.asyncio.client import connect
@@ -52,9 +53,9 @@ class WebSocketClient:
 
         self.uri = uri
         self.websocket = None
-        self._pending_requests: Dict[str, asyncio.Future] = {}
+        self._pending_requests: dict[str, asyncio.Future] = {}
         self._message_handler_task = None
-        self._on_notification: Optional[Callable] = None
+        self._on_notification: Callable | None = None
 
     async def __aenter__(self):
         """Async context manager entry."""
@@ -123,7 +124,7 @@ class WebSocketClient:
             logger.error(f"[WS Client] Error in message handler: {e}", exc_info=True)
 
     async def _send_request(
-        self, method: str, params: Optional[Dict[str, Any]] = None, timeout: float = 30.0
+        self, method: str, params: dict[str, Any] | None = None, timeout: float = 30.0
     ) -> Any:
         """
         Send a request and wait for response.
@@ -174,7 +175,7 @@ class WebSocketClient:
             self._pending_requests.pop(message_id, None)
             raise Exception(f"Timeout waiting for message: {message_id}") from e
 
-    async def list_tools(self) -> Dict[str, Any]:
+    async def list_tools(self) -> dict[str, Any]:
         """
         List available tools on the server.
 
@@ -185,7 +186,7 @@ class WebSocketClient:
         return result
 
     async def invoke_tool(
-        self, tool_name: str, params: Optional[Dict[str, Any]] = None, timeout: float = 30.0
+        self, tool_name: str, params: dict[str, Any] | None = None, timeout: float = 30.0
     ) -> Any:
         """
         Invoke a tool on the server.
@@ -224,7 +225,7 @@ class WebSocketClient:
 
 # Convenience function for quick tool invocation
 async def invoke_remote_tool(
-    uri: str, tool_name: str, params: Optional[Dict[str, Any]] = None
+    uri: str, tool_name: str, params: dict[str, Any] | None = None
 ) -> Any:
     """
     Convenience function to invoke a tool on a remote server.

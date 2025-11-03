@@ -3,7 +3,6 @@ Prometheus format exporter for metrics.
 """
 
 import logging
-from typing import List
 
 from nextmcp.metrics.registry import MetricsRegistry
 from nextmcp.metrics.types import Counter, Gauge, Histogram, Metric, Summary
@@ -41,7 +40,7 @@ class PrometheusExporter:
 
         return "\n".join(lines) + "\n"
 
-    def _export_metric(self, metric: Metric) -> List[str]:
+    def _export_metric(self, metric: Metric) -> list[str]:
         """Export a single metric."""
         lines = []
 
@@ -56,7 +55,7 @@ class PrometheusExporter:
 
         return lines
 
-    def _export_counter(self, counter: Counter) -> List[str]:
+    def _export_counter(self, counter: Counter) -> list[str]:
         """Export a counter metric."""
         lines = []
 
@@ -73,7 +72,7 @@ class PrometheusExporter:
 
         return lines
 
-    def _export_gauge(self, gauge: Gauge) -> List[str]:
+    def _export_gauge(self, gauge: Gauge) -> list[str]:
         """Export a gauge metric."""
         lines = []
 
@@ -90,7 +89,7 @@ class PrometheusExporter:
 
         return lines
 
-    def _export_histogram(self, histogram: Histogram) -> List[str]:
+    def _export_histogram(self, histogram: Histogram) -> list[str]:
         """Export a histogram metric."""
         lines = []
 
@@ -127,7 +126,7 @@ class PrometheusExporter:
 
         return lines
 
-    def _export_summary(self, summary: Summary) -> List[str]:
+    def _export_summary(self, summary: Summary) -> list[str]:
         """Export a summary metric."""
         lines = []
 

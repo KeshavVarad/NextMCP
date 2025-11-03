@@ -7,7 +7,6 @@ Provides consistent logging configuration across the framework and user applicat
 import logging
 import sys
 from pathlib import Path
-from typing import Optional
 
 
 # ANSI color codes for terminal output
@@ -47,8 +46,8 @@ class ColoredFormatter(logging.Formatter):
 
 def setup_logging(
     level: str = "INFO",
-    log_file: Optional[str] = None,
-    format_string: Optional[str] = None,
+    log_file: str | None = None,
+    format_string: str | None = None,
     use_colors: bool = True,
 ) -> None:
     """
@@ -107,7 +106,7 @@ def setup_logging(
     logging.getLogger("nextmcp").setLevel(numeric_level)
 
 
-def get_logger(name: str, level: Optional[str] = None) -> logging.Logger:
+def get_logger(name: str, level: str | None = None) -> logging.Logger:
     """
     Get a logger instance for a specific module.
 
@@ -144,7 +143,7 @@ class LoggerContext:
         # Back to previous level
     """
 
-    def __init__(self, level: str, logger: Optional[logging.Logger] = None):
+    def __init__(self, level: str, logger: logging.Logger | None = None):
         self.level = getattr(logging, level.upper(), logging.INFO)
         self.logger = logger or logging.getLogger()
         self.original_level = None

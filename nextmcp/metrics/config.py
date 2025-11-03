@@ -3,7 +3,6 @@ Configuration for NextMCP metrics system.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, Optional
 
 
 @dataclass
@@ -34,13 +33,13 @@ class MetricsConfig:
     prefix: str = "nextmcp"
     """Prefix for all metric names"""
 
-    labels: Dict[str, str] = field(default_factory=dict)
+    labels: dict[str, str] = field(default_factory=dict)
     """Global labels to apply to all metrics"""
 
     prometheus_enabled: bool = False
     """Enable Prometheus exporter"""
 
-    prometheus_port: Optional[int] = None
+    prometheus_port: int | None = None
     """Port for Prometheus metrics endpoint (if None, use main app)"""
 
     json_enabled: bool = True

@@ -4,7 +4,6 @@ Metrics registry for managing metrics instances.
 
 import logging
 import threading
-from typing import Dict, List, Optional, Type
 
 from nextmcp.metrics.types import Metric
 
@@ -20,7 +19,7 @@ class MetricsRegistry:
 
     def __init__(self):
         """Initialize the metrics registry."""
-        self._metrics: Dict[str, Metric] = {}
+        self._metrics: dict[str, Metric] = {}
         self._lock = threading.Lock()
 
     def register(self, metric: Metric) -> Metric:
@@ -50,7 +49,7 @@ class MetricsRegistry:
             logger.debug(f"Registered metric: {key}")
             return metric
 
-    def get(self, name: str, labels: Optional[Dict[str, str]] = None) -> Optional[Metric]:
+    def get(self, name: str, labels: dict[str, str] | None = None) -> Metric | None:
         """
         Get a registered metric.
 
@@ -68,9 +67,9 @@ class MetricsRegistry:
     def get_or_create(
         self,
         name: str,
-        metric_type: Type[Metric],
+        metric_type: type[Metric],
         description: str = "",
-        labels: Optional[Dict[str, str]] = None,
+        labels: dict[str, str] | None = None,
         **kwargs,
     ) -> Metric:
         """
@@ -98,7 +97,7 @@ class MetricsRegistry:
             logger.debug(f"Created and registered metric: {key}")
             return metric
 
-    def unregister(self, name: str, labels: Optional[Dict[str, str]] = None) -> bool:
+    def unregister(self, name: str, labels: dict[str, str] | None = None) -> bool:
         """
         Unregister a metric.
 
@@ -118,7 +117,7 @@ class MetricsRegistry:
                 return True
             return False
 
-    def list_metrics(self) -> List[Metric]:
+    def list_metrics(self) -> list[Metric]:
         """
         List all registered metrics.
 
@@ -134,7 +133,7 @@ class MetricsRegistry:
             self._metrics.clear()
             logger.debug("Cleared all metrics")
 
-    def _make_key(self, name: str, labels: Dict[str, str]) -> str:
+    def _make_key(self, name: str, labels: dict[str, str]) -> str:
         """Create a unique key for a metric."""
         if not labels:
             return name
@@ -155,7 +154,7 @@ class MetricsRegistry:
 
 
 # Global registry instance
-_global_registry: Optional[MetricsRegistry] = None
+_global_registry: MetricsRegistry | None = None
 _registry_lock = threading.Lock()
 
 

@@ -3,7 +3,6 @@ Metrics collector for NextMCP applications.
 """
 
 import logging
-from typing import Dict, Optional
 
 from nextmcp.metrics.registry import MetricsRegistry, get_registry
 from nextmcp.metrics.types import Counter, Gauge, Histogram, Summary
@@ -18,7 +17,7 @@ class MetricsCollector:
     Provides easy-to-use methods for common metrics operations.
     """
 
-    def __init__(self, registry: Optional[MetricsRegistry] = None, prefix: str = "nextmcp"):
+    def __init__(self, registry: MetricsRegistry | None = None, prefix: str = "nextmcp"):
         """
         Initialize the metrics collector.
 
@@ -33,7 +32,7 @@ class MetricsCollector:
         self,
         name: str,
         description: str = "",
-        labels: Optional[Dict[str, str]] = None,
+        labels: dict[str, str] | None = None,
     ) -> Counter:
         """
         Get or create a counter metric.
@@ -58,7 +57,7 @@ class MetricsCollector:
         self,
         name: str,
         description: str = "",
-        labels: Optional[Dict[str, str]] = None,
+        labels: dict[str, str] | None = None,
     ) -> Gauge:
         """
         Get or create a gauge metric.
@@ -83,8 +82,8 @@ class MetricsCollector:
         self,
         name: str,
         description: str = "",
-        labels: Optional[Dict[str, str]] = None,
-        buckets: Optional[list] = None,
+        labels: dict[str, str] | None = None,
+        buckets: list | None = None,
     ) -> Histogram:
         """
         Get or create a histogram metric.
@@ -115,7 +114,7 @@ class MetricsCollector:
         self,
         name: str,
         description: str = "",
-        labels: Optional[Dict[str, str]] = None,
+        labels: dict[str, str] | None = None,
     ) -> Summary:
         """
         Get or create a summary metric.
@@ -140,7 +139,7 @@ class MetricsCollector:
         self,
         name: str,
         amount: float = 1.0,
-        labels: Optional[Dict[str, str]] = None,
+        labels: dict[str, str] | None = None,
     ) -> None:
         """
         Increment a counter (creates if doesn't exist).
@@ -157,7 +156,7 @@ class MetricsCollector:
         self,
         name: str,
         value: float,
-        labels: Optional[Dict[str, str]] = None,
+        labels: dict[str, str] | None = None,
     ) -> None:
         """
         Set a gauge value (creates if doesn't exist).
@@ -174,7 +173,7 @@ class MetricsCollector:
         self,
         name: str,
         value: float,
-        labels: Optional[Dict[str, str]] = None,
+        labels: dict[str, str] | None = None,
     ) -> None:
         """
         Observe a value in a histogram (creates if doesn't exist).
@@ -190,7 +189,7 @@ class MetricsCollector:
     def time_histogram(
         self,
         name: str,
-        labels: Optional[Dict[str, str]] = None,
+        labels: dict[str, str] | None = None,
     ):
         """
         Context manager to time a code block with a histogram.
@@ -207,7 +206,7 @@ class MetricsCollector:
         histogram = self.histogram(name, labels=labels)
         return histogram.time()
 
-    def get_all_metrics(self) -> Dict[str, Dict]:
+    def get_all_metrics(self) -> dict[str, dict]:
         """
         Get all metrics as a dictionary.
 
