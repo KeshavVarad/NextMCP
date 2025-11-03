@@ -11,3 +11,6 @@ pyyaml>=6.0.0
 
 # Schema validation (optional)
 pydantic>=2.0.0
+
+# WebSocket transport (optional)
+websockets>=12.0
