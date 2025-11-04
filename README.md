@@ -1579,6 +1579,9 @@ cd nextmcp
 # Install in editable mode with dev dependencies
 pip install -e ".[dev]"
 
+# Install git pre-commit hooks (recommended)
+./scripts/install-hooks.sh
+
 # Run tests
 pytest
 
@@ -1593,6 +1596,23 @@ ruff check nextmcp tests
 
 # Type check
 mypy nextmcp
+```
+
+#### Pre-commit Hooks
+
+The repository includes a pre-commit hook that automatically runs before each commit to:
+- Check and auto-fix code with ruff
+- Format code with black
+- Run all tests
+
+Install the hook with:
+```bash
+./scripts/install-hooks.sh
+```
+
+The hook ensures all commits pass linting and tests, preventing CI failures. To bypass the hook (not recommended), use:
+```bash
+git commit --no-verify
 ```
 
 ### Running Tests
