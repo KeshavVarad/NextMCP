@@ -1,0 +1,53 @@
+# Multi-stage Dockerfile for NextMCP Applications
+# Optimized for production with minimal image size
+
+# Stage 1: Builder
+FROM python:3.10-slim as builder
+
+WORKDIR /app
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir --user -r requirements.txt
+
+# Stage 2: Runtime
+FROM python:3.10-slim
+
+# Create non-root user
+RUN useradd -m -u 1000 nextmcp && \
+    mkdir -p /app && \
+    chown -R nextmcp:nextmcp /app
+
+WORKDIR /app
+
+# Copy Python dependencies from builder
+COPY --from=builder --chown=nextmcp:nextmcp /root/.local /home/nextmcp/.local
+
+# Copy application code
+COPY --chown=nextmcp:nextmcp . .
+
+# Set environment variables
+ENV PATH=/home/nextmcp/.local/bin:$PATH \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PORT={{ port | default("8000") }}
+
+# Switch to non-root user
+USER nextmcp
+
+# Expose port
+EXPOSE {{ port | default("8000") }}
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:{{ port | default("8000") }}/health')"
+
+# Run the application
+CMD ["python", "{{ app_file | default("app.py") }}"]

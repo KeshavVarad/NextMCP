@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  {{ app_name | default("nextmcp-app") }}:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "{{ port | default("8000") }}:{{ port | default("8000") }}"
+    environment:
+      - PORT={{ port | default("8000") }}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      {% if with_database %}
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/{{ app_name | default("nextmcp") }}
+      {% endif %}
+      {% if with_redis %}
+      - REDIS_URL=redis://redis:6379/0
+      {% endif %}
+    {% if with_database or with_redis %}
+    depends_on:
+      {% if with_database %}
+      - postgres
+      {% endif %}
+      {% if with_redis %}
+      - redis
+      {% endif %}
+    {% endif %}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:{{ port | default("8000") }}/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  {% if with_database %}
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB={{ app_name | default("nextmcp") }}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  {% endif %}
+  {% if with_redis %}
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  {% endif %}
+{% if with_database or with_redis %}
+volumes:
+  {% if with_database %}
+  postgres_data:
+  {% endif %}
+  {% if with_redis %}
+  redis_data:
+  {% endif %}
+{% endif %}
