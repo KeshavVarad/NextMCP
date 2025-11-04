@@ -16,16 +16,21 @@ NextMCP is a Python SDK built on top of FastMCP that provides a developer-friend
 - **Convention-Based Structure** - Next.js-inspired file-based organization with auto-discovery
 - **Zero-Config Setup** - Single-line `NextMCP.from_config()` for instant project setup
 - **Auto-Discovery** - Automatically discover and register primitives from directory structure
+- **Production Deployment** - One-command deploy to Docker, Railway, Render, Fly.io with health checks
+- **Health Checks** - Built-in liveness and readiness probes for Kubernetes and cloud platforms
+- **Graceful Shutdown** - Clean termination with SIGTERM/SIGINT handling and resource cleanup
 - **Minimal Boilerplate** - Get started with just a few lines of code
 - **Decorator-based API** - Register tools, prompts, and resources with simple decorators
 - **Async Support** - Full support for async/await across all primitives
 - **Argument Completion** - Smart suggestions for prompt arguments and resource templates
 - **Resource Subscriptions** - Real-time notifications when resources change
 - **WebSocket Transport** - Real-time bidirectional communication for interactive applications
+- **Authentication & Authorization** - Built-in support for API keys, JWT, sessions, and RBAC
 - **Global & Primitive-specific Middleware** - Add logging, auth, rate limiting, caching, and more
-- **Rich CLI** - Scaffold projects, run servers, and generate docs with `mcp` commands
+- **Rich CLI** - Scaffold projects, run servers, deploy, and generate docs with `mcp` commands
 - **Configuration Management** - Support for `.env`, YAML config files, and environment variables
 - **Schema Validation** - Optional Pydantic integration for type-safe inputs
+- **Metrics & Monitoring** - Prometheus-compatible metrics with custom metric support
 - **Production Ready** - Built-in error handling, logging, and comprehensive testing
 
 ## Installation
@@ -1519,6 +1524,328 @@ The Prometheus format is compatible with:
 
 See `examples/metrics_example/` for a complete metrics demonstration.
 
+## Production Deployment
+
+NextMCP provides comprehensive tools for deploying your MCP servers to production with Docker, cloud platforms, and Kubernetes.
+
+### Quick Start
+
+Generate Docker deployment files for your project:
+
+```bash
+cd my-mcp-project
+mcp init --docker --with-database
+```
+
+This creates:
+- `Dockerfile` - Optimized multi-stage build (<100MB)
+- `docker-compose.yml` - Complete local development environment
+- `.dockerignore` - Minimal Docker context
+
+Deploy with one command:
+
+```bash
+mcp deploy --platform docker
+```
+
+### Deployment Features
+
+- **Health Checks** - Kubernetes-compatible liveness and readiness probes
+- **Graceful Shutdown** - Clean termination with SIGTERM/SIGINT handling
+- **Multi-Stage Builds** - Optimized Docker images with minimal size
+- **Platform Support** - Docker, Railway, Render, Fly.io, Kubernetes
+- **Auto-Detection** - Automatically detects and configures dependencies
+- **Security Hardening** - Non-root user, minimal attack surface
+
+### Health Checks
+
+Built-in health check system for monitoring application health:
+
+```python
+from nextmcp import NextMCP
+from nextmcp.deployment import HealthCheck
+
+app = NextMCP("my-app")
+health = HealthCheck()
+
+# Add custom readiness check
+def check_database():
+    return db.is_connected()
+
+health.add_readiness_check("database", check_database)
+
+# Health endpoints automatically available:
+# GET /health        - Liveness probe
+# GET /health/ready  - Readiness probe
+```
+
+**Health Check Types:**
+
+- **Liveness**: Is the application running? (restart if fails)
+- **Readiness**: Is the application ready to serve traffic? (remove from load balancer if fails)
+
+**Status Types:**
+- `healthy` - All checks passing
+- `unhealthy` - One or more checks failing
+- `degraded` - Partial functionality available
+
+### Graceful Shutdown
+
+Handle shutdown signals cleanly to prevent data loss:
+
+```python
+from nextmcp.deployment import GracefulShutdown
+
+shutdown = GracefulShutdown(timeout=30.0)
+
+# Add cleanup handlers
+def cleanup_resources():
+    db.close()
+    cache.flush()
+
+shutdown.add_cleanup_handler(cleanup_resources)
+shutdown.register()
+
+# Handles SIGTERM/SIGINT automatically
+# Waits for in-flight requests to complete
+# Runs cleanup handlers in order
+```
+
+### Docker Deployment
+
+#### Generate Docker Files
+
+```bash
+# Basic Docker setup
+mcp init --docker
+
+# With PostgreSQL
+mcp init --docker --with-database
+
+# With PostgreSQL and Redis
+mcp init --docker --with-database --with-redis
+
+# Custom port
+mcp init --docker --port 9000
+```
+
+#### Deploy Locally
+
+```bash
+# Build and start
+docker compose up --build
+
+# View logs
+docker compose logs -f
+
+# Stop
+docker compose down
+```
+
+#### Dockerfile Features
+
+The generated Dockerfile includes:
+- **Multi-stage build** - Separate builder and runtime stages
+- **Python 3.10 slim** - Minimal base image (~100MB total)
+- **Non-root user** - Runs as user `nextmcp` (UID 1000)
+- **Health check** - Built-in HTTP health check
+- **Optimized layers** - Cached dependencies for faster builds
+
+### Cloud Platform Deployment
+
+Deploy to popular cloud platforms with one command:
+
+#### Railway
+
+```bash
+mcp deploy --platform railway
+```
+
+Features:
+- Automatic HTTPS
+- Environment variables
+- Automatic scaling
+- Built-in monitoring
+
+#### Render
+
+```bash
+mcp deploy --platform render
+```
+
+Features:
+- Git-based deployment
+- Automatic SSL
+- Free tier available
+- Persistent volumes
+
+#### Fly.io
+
+```bash
+mcp deploy --platform fly
+```
+
+Features:
+- Edge deployment
+- Global distribution
+- WebSocket support
+- Custom domains
+
+### Kubernetes Deployment
+
+Health checks are Kubernetes-ready:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nextmcp-app
+spec:
+  replicas: 3
+  template:
+    spec:
+      containers:
+      - name: nextmcp
+        image: my-nextmcp-app:latest
+        ports:
+        - containerPort: 8000
+        # Liveness probe
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        # Readiness probe
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+```
+
+### Environment Configuration
+
+Configure your application for different environments:
+
+```bash
+# .env file (development)
+PORT=8000
+LOG_LEVEL=DEBUG
+DATABASE_URL=postgresql://localhost:5432/dev
+
+# .env.production
+PORT=8000
+LOG_LEVEL=INFO
+DATABASE_URL=postgresql://prod-db:5432/app
+```
+
+Load configuration in your app:
+
+```python
+import os
+
+app = NextMCP("my-app")
+
+# Environment-specific configuration
+port = int(os.getenv("PORT", "8000"))
+log_level = os.getenv("LOG_LEVEL", "INFO")
+
+app.run(host="0.0.0.0", port=port)
+```
+
+### Production Checklist
+
+Before deploying to production:
+
+- [ ] Health checks configured and tested
+- [ ] Graceful shutdown enabled
+- [ ] Environment variables secured (use secrets management)
+- [ ] Database migrations run
+- [ ] SSL/TLS certificates configured
+- [ ] Monitoring and alerting setup
+- [ ] Log aggregation configured
+- [ ] Backup strategy implemented
+- [ ] Load testing performed
+- [ ] Resource limits set (CPU, memory)
+- [ ] Security scanning completed
+- [ ] Documentation updated
+
+### Deployment Examples
+
+See complete deployment examples:
+
+- **`examples/deployment_simple/`** - Basic deployment with health checks
+  - Simple health and readiness checks
+  - Graceful shutdown
+  - Production logging
+  - Docker deployment ready
+
+- **`examples/deployment_docker/`** - Production-ready deployment
+  - Database integration with health checks
+  - Metrics collection
+  - Advanced health checks (disk space, database)
+  - Multi-service Docker Compose
+  - Environment configuration
+  - Production best practices
+
+### Platform Support Matrix
+
+| Platform | Status | CLI Required | Notes |
+|----------|--------|--------------|-------|
+| Docker | ✅ Full | docker, docker compose | Local development |
+| Railway | ✅ Full | railway | Automated deployment |
+| Render | ✅ Full | render | Git-based deployment |
+| Fly.io | ✅ Full | flyctl | Edge deployment |
+| Kubernetes | ✅ Ready | kubectl | Health checks included |
+| AWS Lambda | 🔄 Planned | aws-cli | Serverless deployment |
+| Google Cloud Run | 🔄 Planned | gcloud | Managed containers |
+
+### Troubleshooting
+
+**Container won't start:**
+```bash
+# Check logs
+docker compose logs nextmcp-app
+
+# Verify configuration
+docker compose config
+
+# Check port conflicts
+lsof -i :8000
+```
+
+**Health check failing:**
+```bash
+# Manual health check
+curl http://localhost:8000/health
+
+# Check container health
+docker inspect nextmcp-app | grep Health -A 10
+
+# View detailed logs
+docker compose logs -f --tail=100
+```
+
+**Database connection issues:**
+```bash
+# Test database connectivity
+docker compose exec postgres pg_isready
+
+# Check database logs
+docker compose logs postgres
+```
+
+For more deployment guides and troubleshooting, see the example READMEs in `examples/deployment_simple/` and `examples/deployment_docker/`.
+
 ## CLI Commands
 
 NextMCP provides a rich CLI for common development tasks.
@@ -1526,9 +1853,32 @@ NextMCP provides a rich CLI for common development tasks.
 ### Initialize a new project
 
 ```bash
+# Create from template
 mcp init my-project
 mcp init my-project --template weather_bot
 mcp init my-project --path /custom/path
+
+# Generate Docker deployment files
+mcp init --docker
+mcp init --docker --with-database
+mcp init --docker --with-database --with-redis
+mcp init --docker --port 9000
+```
+
+### Deploy to production
+
+```bash
+# Auto-detect platform and deploy
+mcp deploy
+
+# Deploy to specific platform
+mcp deploy --platform docker
+mcp deploy --platform railway
+mcp deploy --platform render
+mcp deploy --platform fly
+
+# Deploy without building
+mcp deploy --platform docker --no-build
 ```
 
 ### Run a server
@@ -1561,6 +1911,8 @@ Check out the `examples/` directory for complete working examples:
 - **auth_api_key** - API key authentication with role-based access control
 - **auth_jwt** - JWT token authentication with login endpoint and token generation
 - **auth_rbac** - Advanced RBAC with fine-grained permissions and wildcards
+- **deployment_simple** - Basic production deployment with health checks and graceful shutdown
+- **deployment_docker** - Production-ready deployment with database, metrics, and Docker Compose
 - **weather_bot** - A weather information server with multiple tools
 - **async_weather_bot** - Async version demonstrating concurrent operations and async middleware
 - **websocket_chat** - Real-time chat server using WebSocket transport
@@ -1679,26 +2031,28 @@ NextMCP builds on FastMCP to provide:
 - [x] **v0.2.0** - Full MCP Primitives (Prompts, Resources, Resource Templates, Subscriptions)
 - [x] **v0.3.0** - Convention-Based Architecture (Auto-discovery, `from_config()`, Project structure)
 - [x] **v0.4.0** - Authentication & Authorization (API keys, JWT, Sessions, RBAC)
+- [x] **v0.5.0** - Production Deployment (Health checks, Graceful shutdown, Docker, Cloud platforms)
 - [x] Async tool support
 - [x] WebSocket transport
 - [x] Plugin system
 - [x] Built-in monitoring and metrics
 
 ### In Progress
-- [ ] Production deployment guides
-- [ ] Docker support
+- [ ] MCP server registry and discovery
 - [ ] More example projects
 - [ ] Documentation site
 
 ### Planned
 
-#### v0.5.0 - Production & Deployment
-- **Deployment Manifests**: Generate Docker, AWS Lambda, and serverless configs
-- **One-Command Deploy**: `mcp deploy --target=aws-lambda`
-- **Production Builds**: Optimized bundles with `mcp build`
-- **Package Distribution**: `mcp package` for Docker, PyPI, and serverless
+#### v0.6.0 - Developer Experience
 - **Hot Reload**: Development mode with automatic file watching
 - **Enhanced CLI**: `mcp dev`, `mcp validate`, `mcp test` commands
+- **Interactive Debugging**: Built-in debugger for MCP tools
+
+#### v0.7.0 - Advanced Deployment
+- **Serverless Support**: AWS Lambda, Google Cloud Functions, Azure Functions
+- **Kubernetes Helm Charts**: Production-ready K8s deployments
+- **Package Distribution**: `mcp package` for Docker, PyPI, and serverless
 
 ## Contributing
 
