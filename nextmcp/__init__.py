@@ -49,6 +49,24 @@ from nextmcp.middleware import (
     validate_inputs,
 )
 from nextmcp.plugins import Plugin, PluginManager, PluginMetadata
+from nextmcp.prompts import (
+    PromptArgument,
+    PromptRegistry,
+    argument,
+    generate_prompt_docs,
+    get_prompt_metadata,
+    prompt,
+)
+from nextmcp.resources import (
+    ResourceMetadata,
+    ResourceRegistry,
+    ResourceTemplate,
+    generate_resource_docs,
+    get_resource_metadata,
+    resource,
+    resource_template,
+    template_completion,
+)
 from nextmcp.tools import ToolRegistry, generate_tool_docs, get_tool_metadata, tool
 from nextmcp.transport import WebSocketClient, WebSocketTransport, WSMessage, invoke_remote_tool
 
@@ -63,6 +81,22 @@ __all__ = [
     "get_tool_metadata",
     "generate_tool_docs",
     "ToolRegistry",
+    # Prompts
+    "prompt",
+    "argument",
+    "get_prompt_metadata",
+    "generate_prompt_docs",
+    "PromptRegistry",
+    "PromptArgument",
+    # Resources
+    "resource",
+    "resource_template",
+    "template_completion",
+    "get_resource_metadata",
+    "generate_resource_docs",
+    "ResourceRegistry",
+    "ResourceMetadata",
+    "ResourceTemplate",
     # Config
     "Config",
     "load_config",
