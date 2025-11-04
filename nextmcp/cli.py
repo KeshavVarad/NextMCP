@@ -51,24 +51,97 @@ if app:
 
     @app.command()
     def init(
-        name: str = typer.Argument(..., help="Name of the new project"),
+        name: str = typer.Argument(
+            None, help="Name of the new project (required for template init)"
+        ),
         template: str = typer.Option(
             "weather_bot", "--template", "-t", help="Template to use (default: weather_bot)"
         ),
         path: str | None = typer.Option(
             None, "--path", "-p", help="Custom path for the project (default: ./<name>)"
         ),
+        docker: bool = typer.Option(
+            False, "--docker", "-d", help="Generate Docker deployment files in current directory"
+        ),
+        with_database: bool = typer.Option(
+            False, "--with-database", help="Include PostgreSQL in docker-compose.yml"
+        ),
+        with_redis: bool = typer.Option(
+            False, "--with-redis", help="Include Redis in docker-compose.yml"
+        ),
+        port: int = typer.Option(8000, "--port", help="Port for the application"),
     ):
         """
-        Initialize a new NextMCP project from a template.
+        Initialize a new NextMCP project from a template or generate Docker files.
 
-        Creates a new directory with boilerplate code to get started quickly.
-
-        Example:
-            mcp init my-bot
+        Examples:
+            mcp init my-bot                    # Create new project from template
             mcp init my-bot --template weather_bot
+            mcp init --docker                  # Generate Docker files in current dir
+            mcp init --docker --with-database  # Include PostgreSQL
         """
         try:
+            # Docker file generation mode
+            if docker:
+                from nextmcp.deployment.templates import TemplateRenderer, detect_app_config
+
+                renderer = TemplateRenderer()
+
+                # Auto-detect or use provided config
+                config = detect_app_config()
+                config["port"] = port
+                config["with_database"] = with_database
+                config["with_redis"] = with_redis
+
+                # If name is provided, use it
+                if name:
+                    config["app_name"] = name
+
+                if console:
+                    console.print("[blue]Generating Docker deployment files...[/blue]")
+                    console.print(f"  App name: {config['app_name']}")
+                    console.print(f"  Port: {config['port']}")
+                    console.print(f"  App file: {config['app_file']}")
+                    if with_database:
+                        console.print("  ✓ Including PostgreSQL")
+                    if with_redis:
+                        console.print("  ✓ Including Redis")
+                    console.print()
+
+                # Render templates
+                renderer.render_to_file("docker/Dockerfile.template", "Dockerfile", config)
+                renderer.render_to_file(
+                    "docker/docker-compose.yml.template", "docker-compose.yml", config
+                )
+                renderer.render_to_file("docker/.dockerignore.template", ".dockerignore", config)
+
+                if console:
+                    console.print("[green]✓[/green] Generated Docker files:")
+                    console.print("  - Dockerfile")
+                    console.print("  - docker-compose.yml")
+                    console.print("  - .dockerignore")
+                    console.print("\nNext steps:")
+                    console.print("  docker compose up --build")
+                    console.print(f"  Open: http://localhost:{config['port']}/health")
+                else:
+                    print("✓ Generated Docker files: Dockerfile, docker-compose.yml, .dockerignore")
+                    print("\nNext steps:")
+                    print("  docker compose up --build")
+                    print(f"  Open: http://localhost:{config['port']}/health")
+
+                return
+
+            # Template-based project initialization mode
+            if not name:
+                if console:
+                    console.print(
+                        "[red]Error:[/red] Project name is required for template initialization"
+                    )
+                    console.print("Use: mcp init <name> or mcp init --docker for Docker files only")
+                else:
+                    print("Error: Project name is required")
+                raise typer.Exit(code=1)
+
             # Determine target path
             target_path = Path(path) if path else Path(name)
 
@@ -278,6 +351,170 @@ if app:
             console.print(f"NextMCP version: {version_str}")
         else:
             print(f"NextMCP version: {version_str}")
+
+    @app.command()
+    def deploy(
+        platform: str = typer.Option(
+            None, "--platform", "-p", help="Platform to deploy to (docker, railway, render, fly)"
+        ),
+        build: bool = typer.Option(True, "--build/--no-build", help="Build before deploying"),
+    ):
+        """
+        Deploy NextMCP application to a platform.
+
+        Supports:
+        - docker: Build and run with Docker
+        - railway: Deploy to Railway (requires railway CLI)
+        - render: Deploy to Render (requires render CLI)
+        - fly: Deploy to Fly.io (requires flyctl)
+
+        Examples:
+            mcp deploy                  # Auto-detect and deploy
+            mcp deploy --platform docker
+            mcp deploy --platform railway
+        """
+        try:
+            import subprocess
+
+            # Auto-detect platform if not specified
+            if not platform:
+                if Path("Dockerfile").exists():
+                    platform = "docker"
+                elif Path("railway.json").exists() or Path("railway.toml").exists():
+                    platform = "railway"
+                elif Path("render.yaml").exists():
+                    platform = "render"
+                elif Path("fly.toml").exists():
+                    platform = "fly"
+                else:
+                    if console:
+                        console.print("[yellow]No platform detected.[/yellow]")
+                        console.print("Generate deployment files with: mcp init --docker")
+                    else:
+                        print("No platform detected. Generate files with: mcp init --docker")
+                    raise typer.Exit(code=1)
+
+                if console:
+                    console.print(f"[blue]Auto-detected platform:[/blue] {platform}")
+
+            # Docker deployment
+            if platform == "docker":
+                if not Path("Dockerfile").exists():
+                    if console:
+                        console.print("[red]Error:[/red] Dockerfile not found")
+                        console.print("Generate with: mcp init --docker")
+                    else:
+                        print("Error: Dockerfile not found. Generate with: mcp init --docker")
+                    raise typer.Exit(code=1)
+
+                if console:
+                    console.print("[blue]Deploying with Docker...[/blue]")
+
+                if build:
+                    if console:
+                        console.print("Building Docker image...")
+                    subprocess.run(["docker", "compose", "build"], check=True)
+
+                if console:
+                    console.print("Starting containers...")
+                subprocess.run(["docker", "compose", "up", "-d"], check=True)
+
+                if console:
+                    console.print("[green]✓[/green] Deployed successfully!")
+                    console.print("\nView logs: docker compose logs -f")
+                    console.print("Stop: docker compose down")
+                else:
+                    print("✓ Deployed successfully!")
+                    print("View logs: docker compose logs -f")
+
+            # Railway deployment
+            elif platform == "railway":
+                # Check if railway CLI is installed
+                result = subprocess.run(["which", "railway"], capture_output=True)
+                if result.returncode != 0:
+                    if console:
+                        console.print("[red]Error:[/red] Railway CLI not found")
+                        console.print("Install: npm install -g @railway/cli")
+                    else:
+                        print("Error: Railway CLI not found")
+                    raise typer.Exit(code=1)
+
+                if console:
+                    console.print("[blue]Deploying to Railway...[/blue]")
+
+                subprocess.run(["railway", "up"], check=True)
+
+                if console:
+                    console.print("[green]✓[/green] Deployed to Railway!")
+                    console.print("\nView logs: railway logs")
+                else:
+                    print("✓ Deployed to Railway!")
+
+            # Render deployment
+            elif platform == "render":
+                # Check if render CLI is installed
+                result = subprocess.run(["which", "render"], capture_output=True)
+                if result.returncode != 0:
+                    if console:
+                        console.print("[red]Error:[/red] Render CLI not found")
+                        console.print("Install: https://render.com/docs/cli")
+                    else:
+                        print("Error: Render CLI not found")
+                    raise typer.Exit(code=1)
+
+                if console:
+                    console.print("[blue]Deploying to Render...[/blue]")
+
+                subprocess.run(["render", "deploy"], check=True)
+
+                if console:
+                    console.print("[green]✓[/green] Deployed to Render!")
+                else:
+                    print("✓ Deployed to Render!")
+
+            # Fly.io deployment
+            elif platform == "fly":
+                # Check if flyctl is installed
+                result = subprocess.run(["which", "flyctl"], capture_output=True)
+                if result.returncode != 0:
+                    if console:
+                        console.print("[red]Error:[/red] Fly CLI not found")
+                        console.print("Install: https://fly.io/docs/hands-on/install-flyctl/")
+                    else:
+                        print("Error: Fly CLI not found")
+                    raise typer.Exit(code=1)
+
+                if console:
+                    console.print("[blue]Deploying to Fly.io...[/blue]")
+
+                subprocess.run(["flyctl", "deploy"], check=True)
+
+                if console:
+                    console.print("[green]✓[/green] Deployed to Fly.io!")
+                    console.print("\nView logs: flyctl logs")
+                else:
+                    print("✓ Deployed to Fly.io!")
+
+            else:
+                if console:
+                    console.print(f"[red]Error:[/red] Unknown platform: {platform}")
+                    console.print("Supported: docker, railway, render, fly")
+                else:
+                    print(f"Error: Unknown platform: {platform}")
+                raise typer.Exit(code=1)
+
+        except subprocess.CalledProcessError as e:
+            if console:
+                console.print(f"[red]Deployment failed:[/red] {e}")
+            else:
+                print(f"Deployment failed: {e}")
+            raise typer.Exit(code=1) from e
+        except Exception as e:
+            if console:
+                console.print(f"[red]Error:[/red] {e}")
+            else:
+                print(f"Error: {e}")
+            raise typer.Exit(code=1) from e
 
 
 def main():
