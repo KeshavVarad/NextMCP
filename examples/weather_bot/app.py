@@ -8,9 +8,9 @@ This example demonstrates:
 - Configuration management
 """
 
-from nextmcp import NextMCP, setup_logging, log_calls, error_handler
-from typing import Optional
 import random
+
+from nextmcp import NextMCP, error_handler, log_calls, setup_logging
 
 # Setup logging
 setup_logging(level="INFO")

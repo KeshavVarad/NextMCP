@@ -5,6 +5,99 @@ All notable changes to NextMCP will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2025-11-04
+
+### Added
+
+#### Authentication & Authorization System
+- **Complete Auth Framework** (`nextmcp/auth/`): Production-ready authentication and authorization
+  - `AuthContext`: Authentication context with user info, roles, and permissions
+  - `AuthProvider`: Base class for authentication strategies
+  - `AuthResult`: Authentication result with success/failure and context
+  - `Permission`: Fine-grained permission model with wildcard support
+  - `Role`: Role class with permission collections
+
+- **Built-in Auth Providers**:
+  - **APIKeyProvider**: API key authentication with role/permission mapping
+    - Pre-configured key validation
+    - Custom validation function support
+    - Secure key generation utility
+  - **JWTProvider**: JSON Web Token authentication
+    - HS256/RS256 algorithm support
+    - Automatic expiration validation
+    - Token creation and verification
+    - Requires PyJWT library
+  - **SessionProvider**: Session-based authentication
+    - In-memory session storage
+    - Automatic session expiration
+    - Session creation and destruction
+    - Expired session cleanup
+
+- **RBAC System** (`nextmcp/auth/rbac.py`):
+  - `RBAC` class for role and permission management
+  - Define custom permissions and roles
+  - Assign permissions to roles
+  - Check and require permissions/roles
+  - Load configuration from dictionaries
+  - Export configuration to dictionaries
+  - `PermissionDeniedError` exception
+
+- **Auth Middleware Decorators**:
+  - `@requires_auth` / `@requires_auth_async`: Require authentication
+  - `@requires_role` / `@requires_role_async`: Require specific roles
+  - `@requires_permission` / `@requires_permission_async`: Require specific permissions
+  - Auth context injected as first parameter to protected tools
+  - Supports middleware stacking
+
+- **Permission Features**:
+  - Exact permission matching (`read:posts`)
+  - Wildcard permissions (`admin:*`, `*`)
+  - Resource-scoped permissions
+  - Permission inheritance through roles
+
+#### Examples
+- **API Key Auth Example** (`examples/auth_api_key/`):
+  - 3 pre-configured API keys (admin, user, viewer)
+  - Role-based access control demonstration
+  - Public and protected tools
+  - Comprehensive README
+
+- **JWT Auth Example** (`examples/auth_jwt/`):
+  - Login endpoint with JWT token generation
+  - Token expiration handling
+  - Token generation utility script
+  - Role-based access demonstration
+
+- **RBAC Example** (`examples/auth_rbac/`):
+  - Fine-grained permission control
+  - Permission wildcards demonstration
+  - RBAC configuration loading
+  - Permission-based access control
+
+#### Tests
+- **Auth Provider Tests** (`tests/test_auth_providers.py`): 26 tests
+  - APIKeyProvider: initialization, authentication, validation, key generation
+  - JWTProvider: token creation, verification, expiration, custom claims
+  - SessionProvider: session management, expiration, cleanup
+
+- **RBAC Tests** (`tests/test_rbac.py`): 36 tests
+  - Permission: creation, matching, wildcards, hashing
+  - Role: creation, permission management
+  - AuthContext: role and permission checking
+  - RBAC: configuration loading, permission checking, access control
+  - PermissionDeniedError
+
+### Changed
+- **Main Exports** (`nextmcp/__init__.py`):
+  - Added all auth classes and functions to public API
+  - 15 new authentication-related exports
+
+### Notes
+- **100% Backward Compatible**: All 235 existing tests pass
+- **62 New Tests**: Comprehensive auth system coverage
+- **297 Total Tests**: All passing
+- **Optional Dependency**: PyJWT required only for JWT provider
+
 ## [0.3.0] - 2025-11-04
 
 ### Added

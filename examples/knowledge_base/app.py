@@ -7,9 +7,7 @@ This example shows how Tools, Prompts, and Resources work together:
 - Resources: Access to knowledge base data and statistics
 """
 
-import asyncio
 from datetime import datetime
-from pathlib import Path
 
 from nextmcp import NextMCP, argument
 
@@ -120,7 +118,7 @@ def list_categories() -> list[str]:
     Returns:
         List of category names
     """
-    categories = set(article["category"] for article in KNOWLEDGE_BASE.values())
+    categories = {article["category"] for article in KNOWLEDGE_BASE.values()}
     return sorted(categories)
 
 

@@ -17,8 +17,26 @@ Example:
         app.run()
 """
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
+from nextmcp.auth import (
+    RBAC,
+    APIKeyProvider,
+    AuthContext,
+    AuthProvider,
+    AuthResult,
+    JWTProvider,
+    Permission,
+    PermissionDeniedError,
+    Role,
+    SessionProvider,
+    requires_auth,
+    requires_auth_async,
+    requires_permission,
+    requires_permission_async,
+    requires_role,
+    requires_role_async,
+)
 from nextmcp.config import Config, load_config
 from nextmcp.core import NextMCP
 from nextmcp.discovery import AutoDiscovery, validate_project_structure
@@ -77,6 +95,23 @@ __all__ = [
     "__version__",
     # Core
     "NextMCP",
+    # Authentication
+    "AuthContext",
+    "AuthProvider",
+    "AuthResult",
+    "APIKeyProvider",
+    "JWTProvider",
+    "SessionProvider",
+    "Permission",
+    "Role",
+    "RBAC",
+    "PermissionDeniedError",
+    "requires_auth",
+    "requires_auth_async",
+    "requires_role",
+    "requires_role_async",
+    "requires_permission",
+    "requires_permission_async",
     # Tools
     "tool",
     "get_tool_metadata",

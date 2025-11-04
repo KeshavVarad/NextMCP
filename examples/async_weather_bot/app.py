@@ -9,9 +9,9 @@ This example demonstrates:
 """
 
 import asyncio
-from nextmcp import NextMCP, setup_logging, log_calls_async, error_handler_async
-from typing import Optional
 import random
+
+from nextmcp import NextMCP, error_handler_async, log_calls_async, setup_logging
 
 # Setup logging
 setup_logging(level="INFO")
@@ -185,7 +185,7 @@ async def test_async_tools():
     # Get batch weather (concurrent execution)
     print("\n3. Testing get_batch_weather (concurrent)...")
     cities = ["New York", "London", "Tokyo", "Paris"]
-    batch_weather = await get_batch_weather(cities)
+    await get_batch_weather(cities)
     print(f"   Result: Fetched weather for {len(cities)} cities concurrently")
 
     # Search cities
