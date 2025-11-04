@@ -17,7 +17,7 @@ Example:
         app.run()
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 from nextmcp.config import Config, load_config
 from nextmcp.core import NextMCP
