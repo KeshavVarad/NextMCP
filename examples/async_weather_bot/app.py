@@ -185,7 +185,7 @@ async def test_async_tools():
     # Get batch weather (concurrent execution)
     print("\n3. Testing get_batch_weather (concurrent)...")
     cities = ["New York", "London", "Tokyo", "Paris"]
-    batch_weather = await get_batch_weather(cities)
+    await get_batch_weather(cities)
     print(f"   Result: Fetched weather for {len(cities)} cities concurrently")
 
     # Search cities

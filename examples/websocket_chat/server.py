@@ -77,7 +77,7 @@ async def get_stats() -> dict:
     Returns:
         Server statistics
     """
-    unique_users = set(msg["username"] for msg in chat_history)
+    unique_users = {msg["username"] for msg in chat_history}
 
     return {
         "total_messages": len(chat_history),

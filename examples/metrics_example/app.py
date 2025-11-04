@@ -89,7 +89,7 @@ for i in [10, 20, 30]:
 
 # Error handling
 print("\n4. Error handling (some may fail):")
-for i in range(5):
+for _i in range(5):
     try:
         result = error_demo()
         print(f"   error_demo() = {result['status']}")

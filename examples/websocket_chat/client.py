@@ -73,7 +73,7 @@ async def main():
             # Test echo (concurrent calls)
             print("7. Testing concurrent tool invocation...")
             echo_tasks = [client.invoke_tool("echo", {"message": f"Message {i}"}) for i in range(5)]
-            results = await asyncio.gather(*echo_tasks)
+            await asyncio.gather(*echo_tasks)
             print("   Sent 5 concurrent echo requests")
             print("   All received back successfully ✓\n")
 

@@ -118,7 +118,7 @@ def list_categories() -> list[str]:
     Returns:
         List of category names
     """
-    categories = set(article["category"] for article in KNOWLEDGE_BASE.values())
+    categories = {article["category"] for article in KNOWLEDGE_BASE.values()}
     return sorted(categories)
 
 
