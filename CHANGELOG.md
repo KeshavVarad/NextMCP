@@ -168,13 +168,15 @@ shutdown.register()
 - **Kubernetes Ready**: Health checks compatible with K8s probes
 
 ### Platform Support
-| Platform | Status | CLI Required | Notes |
-|----------|--------|--------------|-------|
-| Docker | ✅ Full | docker, docker compose | Local development |
-| Railway | ✅ Full | railway | Automated deployment |
-| Render | ✅ Full | render | Git-based deployment |
-| Fly.io | ✅ Full | flyctl | Edge deployment |
-| Kubernetes | ✅ Ready | kubectl | Health checks included |
+| Platform | Status | CLI Required | Testing | Notes |
+|----------|--------|--------------|---------|-------|
+| Docker | ✅ Full | docker, docker compose | ✅ Automated CI | Fully tested, production-ready |
+| Kubernetes | ✅ Ready | kubectl | ✅ Manifests validated | Health checks tested |
+| Railway | 🧪 Beta | railway | ⚠️ Manual only | CLI integration, needs testing |
+| Render | 🧪 Beta | render | ⚠️ Manual only | CLI integration, needs testing |
+| Fly.io | 🧪 Beta | flyctl | ⚠️ Manual only | CLI integration, needs testing |
+
+**Testing Status:** Cloud platform deployments (Railway, Render, Fly.io) use their respective CLI tools. We test that commands are invoked correctly, but full platform integration requires manual verification. Community testing and feedback welcome!
 
 ## [0.4.0] - 2025-11-04
 

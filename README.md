@@ -1651,11 +1651,11 @@ The generated Dockerfile includes:
 - **Health check** - Built-in HTTP health check
 - **Optimized layers** - Cached dependencies for faster builds
 
-### Cloud Platform Deployment
+### Cloud Platform Deployment (Beta)
 
-Deploy to popular cloud platforms with one command:
+Deploy to popular cloud platforms with one command. **Note:** These integrations are in beta and use the platform's CLI tools. Community testing and feedback welcome!
 
-#### Railway
+#### Railway (Beta)
 
 ```bash
 mcp deploy --platform railway
@@ -1667,7 +1667,9 @@ Features:
 - Automatic scaling
 - Built-in monitoring
 
-#### Render
+**Requirements:** Install [Railway CLI](https://docs.railway.app/develop/cli) (`npm install -g @railway/cli`)
+
+#### Render (Beta)
 
 ```bash
 mcp deploy --platform render
@@ -1679,7 +1681,9 @@ Features:
 - Free tier available
 - Persistent volumes
 
-#### Fly.io
+**Requirements:** Install [Render CLI](https://render.com/docs/cli)
+
+#### Fly.io (Beta)
 
 ```bash
 mcp deploy --platform fly
@@ -1690,6 +1694,10 @@ Features:
 - Global distribution
 - WebSocket support
 - Custom domains
+
+**Requirements:** Install [Fly CLI](https://fly.io/docs/hands-on/install-flyctl/) (`flyctl`)
+
+**Beta Notice:** Cloud platform deployments shell out to their respective CLI tools. We verify the commands are called correctly, but haven't tested actual deployments on these platforms. If you use these successfully (or encounter issues), please [open an issue](https://github.com/KeshavVarad/NextMCP/issues) to help improve the integration!
 
 ### Kubernetes Deployment
 
@@ -1799,15 +1807,22 @@ See complete deployment examples:
 
 ### Platform Support Matrix
 
-| Platform | Status | CLI Required | Notes |
-|----------|--------|--------------|-------|
-| Docker | ✅ Full | docker, docker compose | Local development |
-| Railway | ✅ Full | railway | Automated deployment |
-| Render | ✅ Full | render | Git-based deployment |
-| Fly.io | ✅ Full | flyctl | Edge deployment |
-| Kubernetes | ✅ Ready | kubectl | Health checks included |
-| AWS Lambda | 🔄 Planned | aws-cli | Serverless deployment |
-| Google Cloud Run | 🔄 Planned | gcloud | Managed containers |
+| Platform | Status | CLI Required | Testing | Notes |
+|----------|--------|--------------|---------|-------|
+| Docker | ✅ Full | docker, docker compose | ✅ Automated CI | Fully tested, production-ready |
+| Kubernetes | ✅ Ready | kubectl | ✅ Manifests validated | Health checks tested |
+| Railway | 🧪 Beta | railway | ⚠️ Manual only | CLI integration, needs testing |
+| Render | 🧪 Beta | render | ⚠️ Manual only | CLI integration, needs testing |
+| Fly.io | 🧪 Beta | flyctl | ⚠️ Manual only | CLI integration, needs testing |
+| AWS Lambda | 🔄 Planned | aws-cli | - | Serverless support |
+| Google Cloud Run | 🔄 Planned | gcloud | - | Managed containers |
+
+**Testing Status:**
+- **✅ Full Support**: Comprehensive automated tests in CI, production-ready
+- **🧪 Beta**: CLI integration works, but not tested on actual platforms - community testing needed
+- **🔄 Planned**: Not yet implemented
+
+**Note on Beta Platforms:** Railway, Render, and Fly.io deployments use their respective CLI tools. We test that commands are invoked correctly, but full platform integration requires manual verification. If you successfully deploy to these platforms, please share your experience in [GitHub Issues](https://github.com/KeshavVarad/NextMCP/issues)!
 
 ### Troubleshooting
 
