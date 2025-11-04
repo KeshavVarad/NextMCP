@@ -398,6 +398,375 @@ def legacy_tool():
 
 See `examples/blog_server/` for a complete convention-based project.
 
+## Authentication & Authorization
+
+NextMCP v0.4.0 introduces a comprehensive authentication and authorization system inspired by next-auth, adapted for the Model Context Protocol.
+
+### Why Authentication for MCP?
+
+MCP servers often need to:
+- **Protect sensitive tools** from unauthorized access
+- **Implement role-based access** (admin, user, viewer)
+- **Track who performed actions** for audit logs
+- **Integrate with existing auth systems** (API keys, JWT, OAuth)
+
+### Quick Start
+
+#### API Key Authentication
+
+The simplest way to protect your tools:
+
+```python
+from nextmcp import NextMCP
+from nextmcp.auth import APIKeyProvider, AuthContext, requires_auth_async
+
+app = NextMCP("secure-server")
+
+# Configure API key provider
+api_key_provider = APIKeyProvider(
+    valid_keys={
+        "admin-key-123": {
+            "user_id": "admin1",
+            "username": "admin",
+            "roles": ["admin"],
+            "permissions": ["read:*", "write:*"],
+        },
+        "user-key-456": {
+            "user_id": "user1",
+            "username": "alice",
+            "roles": ["user"],
+            "permissions": ["read:posts"],
+        }
+    }
+)
+
+# Protected tool - requires authentication
+@app.tool()
+@requires_auth_async(provider=api_key_provider)
+async def protected_tool(auth: AuthContext, data: str) -> dict:
+    """Only authenticated users can access this."""
+    return {
+        "message": f"Hello {auth.username}",
+        "data": data,
+        "user_id": auth.user_id
+    }
+```
+
+#### JWT Token Authentication
+
+For stateless token-based auth:
+
+```python
+from nextmcp.auth import JWTProvider
+
+# Configure JWT provider
+jwt_provider = JWTProvider(
+    secret_key="your-secret-key",
+    algorithm="HS256",
+    verify_exp=True
+)
+
+# Login endpoint that generates tokens
+@app.tool()
+async def login(username: str, password: str) -> dict:
+    """Login and receive a JWT token."""
+    # Validate credentials (check database, etc.)
+
+    # Generate token
+    token = jwt_provider.create_token(
+        user_id=f"user_{username}",
+        roles=["user"],
+        permissions=["read:posts", "write:posts"],
+        username=username,
+        expires_in=3600  # 1 hour
+    )
+
+    return {"token": token, "expires_in": 3600}
+
+# Use the token for authentication
+@app.tool()
+@requires_auth_async(provider=jwt_provider)
+async def secure_action(auth: AuthContext) -> dict:
+    """Requires valid JWT token."""
+    return {"user": auth.username, "action": "performed"}
+```
+
+### Built-in Auth Providers
+
+NextMCP includes three production-ready authentication providers:
+
+| Provider | Use Case | Features |
+|----------|----------|----------|
+| **APIKeyProvider** | Simple API key auth | Pre-configured keys, custom validators, secure generation |
+| **JWTProvider** | Token-based auth | Automatic expiration, signature verification, stateless |
+| **SessionProvider** | Session-based auth | In-memory sessions, automatic cleanup, session management |
+
+### Role-Based Access Control (RBAC)
+
+Control access based on user roles:
+
+```python
+from nextmcp.auth import requires_role_async
+
+# Only admins can access this tool
+@app.tool()
+@requires_auth_async(provider=api_key_provider)
+@requires_role_async("admin")
+async def admin_tool(auth: AuthContext) -> dict:
+    """Admin-only functionality."""
+    return {"action": "admin action performed"}
+
+# Users or admins can access
+@app.tool()
+@requires_auth_async(provider=api_key_provider)
+@requires_role_async("user", "admin")  # Either role works
+async def user_tool(auth: AuthContext) -> dict:
+    """User or admin can access."""
+    return {"action": "user action"}
+```
+
+### Permission-Based Access Control
+
+Fine-grained control with specific permissions:
+
+```python
+from nextmcp.auth import RBAC, requires_permission_async
+
+# Set up RBAC system
+rbac = RBAC()
+
+# Define permissions
+rbac.define_permission("read:posts", "Read blog posts")
+rbac.define_permission("write:posts", "Create and edit posts")
+rbac.define_permission("delete:posts", "Delete posts")
+
+# Define roles with permissions
+rbac.define_role("viewer", "Read-only access")
+rbac.assign_permission_to_role("viewer", "read:posts")
+
+rbac.define_role("editor", "Full content management")
+rbac.assign_permission_to_role("editor", "read:posts")
+rbac.assign_permission_to_role("editor", "write:posts")
+rbac.assign_permission_to_role("editor", "delete:posts")
+
+# Require specific permission
+@app.tool()
+@requires_auth_async(provider=api_key_provider)
+@requires_permission_async("write:posts")
+async def create_post(auth: AuthContext, title: str) -> dict:
+    """Requires write:posts permission."""
+    return {"status": "created", "title": title}
+
+# Multiple permissions (user needs at least one)
+@app.tool()
+@requires_auth_async(provider=api_key_provider)
+@requires_permission_async("admin:posts", "delete:posts")
+async def delete_post(auth: AuthContext, post_id: int) -> dict:
+    """Requires admin:posts OR delete:posts permission."""
+    return {"status": "deleted", "post_id": post_id}
+```
+
+### Permission Wildcards
+
+Support for wildcard permissions:
+
+```python
+# Admin with wildcard - matches ALL permissions
+rbac.define_role("admin", "Full access")
+rbac.assign_permission_to_role("admin", "*")
+
+# Namespace wildcard - matches all admin permissions
+rbac.assign_permission_to_role("moderator", "admin:*")
+
+# moderator has: admin:users, admin:posts, admin:settings, etc.
+```
+
+### AuthContext
+
+The `AuthContext` object is injected as the first parameter to protected tools:
+
+```python
+@app.tool()
+@requires_auth_async(provider=api_key_provider)
+async def my_tool(auth: AuthContext, param: str) -> dict:
+    # Access user information
+    user_id = auth.user_id           # Unique user ID
+    username = auth.username         # Human-readable name
+
+    # Check roles and permissions
+    is_admin = auth.has_role("admin")
+    can_write = auth.has_permission("write:posts")
+
+    # Access metadata
+    department = auth.metadata.get("department")
+
+    return {
+        "user": username,
+        "is_admin": is_admin,
+        "can_write": can_write
+    }
+```
+
+### Middleware Stacking
+
+Stack authentication and authorization decorators:
+
+```python
+@app.tool()                                           # 4. Register as tool
+@requires_auth_async(provider=api_key_provider)      # 3. Authenticate user
+@requires_role_async("admin")                        # 2. Check role
+@requires_permission_async("delete:users")           # 1. Check permission (executes first)
+async def delete_user(auth: AuthContext, user_id: int) -> dict:
+    """Requires authentication, admin role, AND delete:users permission."""
+    return {"status": "deleted", "user_id": user_id}
+```
+
+### Session Management
+
+Using the SessionProvider for session-based authentication:
+
+```python
+from nextmcp.auth import SessionProvider
+
+session_provider = SessionProvider(session_timeout=3600)  # 1 hour
+
+@app.tool()
+async def login(username: str, password: str) -> dict:
+    """Create a new session."""
+    # Validate credentials...
+
+    # Create session
+    session_id = session_provider.create_session(
+        user_id=f"user_{username}",
+        username=username,
+        roles=["user"],
+        permissions=["read:posts"]
+    )
+
+    return {"session_id": session_id, "expires_in": 3600}
+
+@app.tool()
+async def logout(session_id: str) -> dict:
+    """Destroy a session."""
+    success = session_provider.destroy_session(session_id)
+    return {"logged_out": success}
+
+# Use session for authentication
+@app.tool()
+@requires_auth_async(provider=session_provider)
+async def protected_tool(auth: AuthContext) -> dict:
+    """Requires valid session."""
+    return {"user": auth.username}
+```
+
+### Loading RBAC from Configuration
+
+Define roles and permissions in configuration:
+
+```python
+from nextmcp.auth import RBAC
+
+rbac = RBAC()
+
+config = {
+    "permissions": [
+        {"name": "read:posts", "description": "Read posts"},
+        {"name": "write:posts", "description": "Write posts"},
+        {"name": "delete:posts", "description": "Delete posts"},
+    ],
+    "roles": [
+        {
+            "name": "viewer",
+            "description": "Read-only",
+            "permissions": ["read:posts"]
+        },
+        {
+            "name": "editor",
+            "description": "Full content management",
+            "permissions": ["read:posts", "write:posts", "delete:posts"]
+        }
+    ]
+}
+
+rbac.load_from_config(config)
+```
+
+### Custom Auth Providers
+
+Create your own authentication provider:
+
+```python
+from nextmcp.auth import AuthProvider, AuthResult, AuthContext
+
+class CustomAuthProvider(AuthProvider):
+    """Custom authentication using external service."""
+
+    async def authenticate(self, credentials: dict) -> AuthResult:
+        """Validate credentials against external service."""
+        token = credentials.get("token")
+
+        # Call your external auth service
+        user_data = await external_auth_service.validate(token)
+
+        if not user_data:
+            return AuthResult.failure("Invalid token")
+
+        # Build auth context
+        context = AuthContext(
+            authenticated=True,
+            user_id=user_data["id"],
+            username=user_data["name"],
+        )
+
+        # Add roles from external service
+        for role in user_data.get("roles", []):
+            context.add_role(role)
+
+        return AuthResult.success_result(context)
+```
+
+### Error Handling
+
+Authentication errors are raised as exceptions:
+
+```python
+from nextmcp.auth import PermissionDeniedError
+from nextmcp.auth.middleware import AuthenticationError
+
+try:
+    # Call protected tool without credentials
+    result = await protected_tool(data="test")
+except AuthenticationError as e:
+    print(f"Auth failed: {e}")
+
+try:
+    # Call tool without required permission
+    result = await admin_tool()
+except PermissionDeniedError as e:
+    print(f"Permission denied: {e}")
+    print(f"Required: {e.required}")
+    print(f"User: {e.user_id}")
+```
+
+### Security Best Practices
+
+1. **Never commit secrets**: Use environment variables for keys/secrets
+2. **Use HTTPS/TLS**: Always encrypt traffic in production
+3. **Rotate keys regularly**: Implement key rotation policies
+4. **Short token expiration**: Balance security and UX (1-24 hours)
+5. **Log auth attempts**: Track successful and failed authentication
+6. **Validate all inputs**: Never trust client-provided data
+7. **Use strong secrets**: Generate with `secrets.token_urlsafe(32)`
+8. **Implement rate limiting**: Prevent brute force attacks
+
+### Examples
+
+Check out complete authentication examples:
+
+- **`examples/auth_api_key/`** - API key authentication with role-based access
+- **`examples/auth_jwt/`** - JWT token authentication with login endpoint
+- **`examples/auth_rbac/`** - Advanced RBAC with fine-grained permissions
+
 ## Core Concepts
 
 ### Creating an Application
@@ -1189,6 +1558,9 @@ mcp version
 Check out the `examples/` directory for complete working examples:
 
 - **blog_server** - Convention-based project structure with auto-discovery (5 tools, 3 prompts, 4 resources)
+- **auth_api_key** - API key authentication with role-based access control
+- **auth_jwt** - JWT token authentication with login endpoint and token generation
+- **auth_rbac** - Advanced RBAC with fine-grained permissions and wildcards
 - **weather_bot** - A weather information server with multiple tools
 - **async_weather_bot** - Async version demonstrating concurrent operations and async middleware
 - **websocket_chat** - Real-time chat server using WebSocket transport
@@ -1262,6 +1634,12 @@ NextMCP builds on FastMCP to provide:
 | Convention-based structure | ❌ | ✅ File-based organization |
 | Auto-discovery | ❌ | ✅ Automatic primitive registration |
 | Zero-config setup | ❌ | ✅ `NextMCP.from_config()` |
+| **Authentication & Authorization** | ❌ | ✅ **Built-in auth system** |
+| API key auth | ❌ | ✅ APIKeyProvider |
+| JWT auth | ❌ | ✅ JWTProvider |
+| Session auth | ❌ | ✅ SessionProvider |
+| RBAC | ❌ | ✅ Full RBAC system |
+| Permission-based access | ❌ | ✅ Fine-grained permissions |
 | Async/await support | ❌ | ✅ Full support |
 | WebSocket transport | ❌ | ✅ Built-in |
 | Middleware | ❌ | Global + tool-specific |
@@ -1280,6 +1658,7 @@ NextMCP builds on FastMCP to provide:
 - [x] **v0.1.0** - Core MCP server with Tools primitive
 - [x] **v0.2.0** - Full MCP Primitives (Prompts, Resources, Resource Templates, Subscriptions)
 - [x] **v0.3.0** - Convention-Based Architecture (Auto-discovery, `from_config()`, Project structure)
+- [x] **v0.4.0** - Authentication & Authorization (API keys, JWT, Sessions, RBAC)
 - [x] Async tool support
 - [x] WebSocket transport
 - [x] Plugin system
@@ -1292,13 +1671,6 @@ NextMCP builds on FastMCP to provide:
 - [ ] Documentation site
 
 ### Planned
-
-#### v0.4.0 - Authentication & Authorization
-- **Built-in Auth System**: next-auth inspired authentication for MCP
-- **Multiple Providers**: API keys, JWT, OAuth-like flows for MCP
-- **Role-Based Access Control (RBAC)**: Tool-level permissions
-- **Convention-Based**: `auth/` directory for auth providers
-- **Middleware Integration**: Seamless auth middleware
 
 #### v0.5.0 - Production & Deployment
 - **Deployment Manifests**: Generate Docker, AWS Lambda, and serverless configs
