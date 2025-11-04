@@ -38,6 +38,12 @@ class NextMCP:
         self.name = name
         self.description = description or f"{name} MCP Server"
         self._tools: dict[str, Callable] = {}
+        self._prompts: dict[str, Callable] = {}
+        self._resources: dict[str, Callable] = {}
+        self._resource_templates: dict[str, Callable] = {}
+        self._prompt_completions: dict[str, Callable] = {}
+        self._template_completions: dict[str, Callable] = {}
+        self._resource_subscriptions: dict[str, list[str]] = {}  # Using list to maintain FIFO order
         self._global_middleware: list[Callable] = []
         self._fastmcp_server = None
         self._plugin_manager = None
@@ -120,6 +126,332 @@ class NextMCP:
             Dictionary mapping tool names to their wrapped functions
         """
         return self._tools.copy()
+
+    def prompt(
+        self, name: str | None = None, description: str | None = None, tags: list[str] | None = None
+    ):
+        """
+        Decorator to register a function as an MCP prompt.
+
+        Prompts are user-driven workflow templates that guide interactions.
+        Global middleware will be automatically applied to the prompt.
+
+        Args:
+            name: Optional custom name for the prompt (defaults to function name)
+            description: Optional description of what the prompt does
+            tags: Optional tags for categorization
+
+        Example:
+            @app.prompt(tags=["travel"])
+            def vacation_planner(destination: str, budget: int) -> str:
+                return f"Plan a vacation to {destination} with ${budget}"
+
+            @app.prompt()
+            async def async_prompt(param: str) -> str:
+                return await generate_prompt(param)
+        """
+
+        def decorator(fn: Callable) -> Callable:
+            prompt_name = name or fn.__name__
+            is_async = inspect.iscoroutinefunction(fn)
+
+            # Apply global middleware in order
+            wrapped_fn = fn
+            for middleware in self._global_middleware:
+                wrapped_fn = middleware(wrapped_fn)
+
+            # Store metadata
+            wrapped_fn._prompt_name = prompt_name
+            wrapped_fn._prompt_description = description or fn.__doc__
+            wrapped_fn._prompt_tags = tags or []
+            wrapped_fn._original_fn = fn
+            wrapped_fn._is_async = is_async
+
+            self._prompts[prompt_name] = wrapped_fn
+            logger.debug(f"Registered {'async' if is_async else 'sync'} prompt: {prompt_name}")
+
+            return wrapped_fn
+
+        return decorator
+
+    def prompt_completion(self, prompt_name: str, arg_name: str):
+        """
+        Decorator to register a completion function for a prompt argument.
+
+        Completion functions provide suggestions for prompt arguments.
+
+        Args:
+            prompt_name: Name of the prompt
+            arg_name: Name of the argument to provide completions for
+
+        Example:
+            @app.prompt_completion("vacation_planner", "destination")
+            async def complete_destinations(partial: str) -> list[str]:
+                return ["Paris", "Tokyo", "New York", "London"]
+        """
+
+        def decorator(fn: Callable) -> Callable:
+            key = f"{prompt_name}.{arg_name}"
+            self._prompt_completions[key] = fn
+            logger.debug(f"Registered prompt completion: {key}")
+            return fn
+
+        return decorator
+
+    def get_prompts(self) -> dict[str, Callable]:
+        """
+        Get all registered prompts.
+
+        Returns:
+            Dictionary mapping prompt names to their wrapped functions
+        """
+        return self._prompts.copy()
+
+    def resource(
+        self,
+        uri: str,
+        name: str | None = None,
+        description: str | None = None,
+        mime_type: str | None = None,
+        subscribable: bool = False,
+        max_subscribers: int = 100,
+    ):
+        """
+        Decorator to register a function as an MCP resource.
+
+        Resources provide read-only access to data with a unique URI.
+        Global middleware will be automatically applied to the resource.
+
+        Args:
+            uri: Unique resource identifier (e.g., "file:///path/to/file")
+            name: Human-readable name
+            description: Description of the resource
+            mime_type: MIME type of the content
+            subscribable: Whether to support change notifications
+            max_subscribers: Maximum number of subscribers
+
+        Example:
+            @app.resource("file:///logs/app.log", subscribable=True)
+            def app_logs() -> str:
+                return Path("/var/logs/app.log").read_text()
+
+            @app.resource("config://app/settings", mime_type="application/json")
+            async def app_settings() -> dict:
+                return await load_settings()
+        """
+
+        def decorator(fn: Callable) -> Callable:
+            from nextmcp.resources import ResourceMetadata
+
+            is_async = inspect.iscoroutinefunction(fn)
+
+            # Apply global middleware in order
+            wrapped_fn = fn
+            for middleware in self._global_middleware:
+                wrapped_fn = middleware(wrapped_fn)
+
+            # Store metadata
+            metadata = ResourceMetadata(
+                uri=uri,
+                name=name,
+                description=description or fn.__doc__,
+                mime_type=mime_type,
+                subscribable=subscribable,
+                max_subscribers=max_subscribers,
+            )
+
+            wrapped_fn._resource_uri = uri
+            wrapped_fn._resource_metadata = metadata
+            wrapped_fn._resource_type = "direct"
+            wrapped_fn._original_fn = fn
+            wrapped_fn._is_async = is_async
+
+            self._resources[uri] = wrapped_fn
+
+            # Initialize subscription tracking if subscribable
+            if subscribable:
+                self._resource_subscriptions[uri] = []  # List for FIFO ordering
+
+            logger.debug(f"Registered {'async' if is_async else 'sync'} resource: {uri}")
+
+            return wrapped_fn
+
+        return decorator
+
+    def resource_template(self, uri_pattern: str, description: str | None = None):
+        """
+        Decorator to register a function as an MCP resource template.
+
+        Resource templates have parameters in their URI that get mapped to function arguments.
+        Global middleware will be automatically applied to the template.
+
+        Args:
+            uri_pattern: URI pattern with parameters in {braces}
+            description: Description of the template
+
+        Example:
+            @app.resource_template("weather://forecast/{city}/{date}")
+            async def weather_forecast(city: str, date: str) -> dict:
+                return await fetch_weather(city, date)
+
+            @app.resource_template("file:///docs/{category}/{filename}")
+            def documentation(category: str, filename: str) -> str:
+                return Path(f"/docs/{category}/{filename}").read_text()
+        """
+
+        def decorator(fn: Callable) -> Callable:
+            from nextmcp.resources import ResourceTemplate
+
+            is_async = inspect.iscoroutinefunction(fn)
+
+            # Apply global middleware in order
+            wrapped_fn = fn
+            for middleware in self._global_middleware:
+                wrapped_fn = middleware(wrapped_fn)
+
+            # Create template metadata
+            template = ResourceTemplate(
+                uri_pattern=uri_pattern, description=description or fn.__doc__
+            )
+
+            # Store metadata
+            wrapped_fn._resource_template = template
+            wrapped_fn._resource_type = "template"
+            wrapped_fn._original_fn = fn
+            wrapped_fn._is_async = is_async
+
+            self._resource_templates[uri_pattern] = wrapped_fn
+            logger.debug(
+                f"Registered {'async' if is_async else 'sync'} resource template: {uri_pattern}"
+            )
+
+            return wrapped_fn
+
+        return decorator
+
+    def template_completion(self, template_name: str, param_name: str):
+        """
+        Decorator to register a completion function for a resource template parameter.
+
+        Args:
+            template_name: Name of the template function
+            param_name: Name of the parameter to provide completions for
+
+        Example:
+            @app.template_completion("weather_forecast", "city")
+            def complete_cities(partial: str) -> list[str]:
+                return ["London", "Paris", "Tokyo", "New York"]
+        """
+
+        def decorator(fn: Callable) -> Callable:
+            key = f"{template_name}.{param_name}"
+            self._template_completions[key] = fn
+            logger.debug(f"Registered template completion: {key}")
+            return fn
+
+        return decorator
+
+    def get_resources(self) -> dict[str, Callable]:
+        """
+        Get all registered resources.
+
+        Returns:
+            Dictionary mapping resource URIs to their wrapped functions
+        """
+        return self._resources.copy()
+
+    def get_resource_templates(self) -> dict[str, Callable]:
+        """
+        Get all registered resource templates.
+
+        Returns:
+            Dictionary mapping template patterns to their wrapped functions
+        """
+        return self._resource_templates.copy()
+
+    def notify_resource_changed(self, uri: str) -> int:
+        """
+        Notify subscribers that a resource has changed.
+
+        Args:
+            uri: URI of the resource that changed
+
+        Returns:
+            Number of subscribers notified
+
+        Example:
+            # After updating a file
+            app.notify_resource_changed("file:///config/settings.json")
+        """
+        if uri not in self._resource_subscriptions:
+            logger.warning(f"No subscriptions found for resource: {uri}")
+            return 0
+
+        subscribers = self._resource_subscriptions[uri]
+        logger.info(f"Notifying {len(subscribers)} subscribers for resource: {uri}")
+
+        # In a real implementation, this would send notifications via the MCP protocol
+        # For now, we just log and return the count
+        return len(subscribers)
+
+    def subscribe_to_resource(self, uri: str, subscriber_id: str) -> bool:
+        """
+        Subscribe to resource changes.
+
+        Args:
+            uri: URI of the resource to subscribe to
+            subscriber_id: Unique identifier for the subscriber
+
+        Returns:
+            True if subscription was successful
+        """
+        if uri not in self._resources:
+            logger.warning(f"Resource not found: {uri}")
+            return False
+
+        resource = self._resources[uri]
+        metadata = getattr(resource, "_resource_metadata", None)
+
+        if not metadata or not metadata.subscribable:
+            logger.warning(f"Resource is not subscribable: {uri}")
+            return False
+
+        if uri not in self._resource_subscriptions:
+            self._resource_subscriptions[uri] = []
+
+        # Check subscriber limit
+        if len(self._resource_subscriptions[uri]) >= metadata.max_subscribers:
+            logger.warning(f"Max subscribers reached for {uri}")
+            # Remove oldest subscriber (FIFO) - first item in list
+            oldest = self._resource_subscriptions[uri].pop(0)
+            logger.info(f"Removed oldest subscriber {oldest} from {uri}")
+
+        # Add new subscriber (avoid duplicates)
+        if subscriber_id not in self._resource_subscriptions[uri]:
+            self._resource_subscriptions[uri].append(subscriber_id)
+            logger.debug(f"Subscriber {subscriber_id} subscribed to {uri}")
+        return True
+
+    def unsubscribe_from_resource(self, uri: str, subscriber_id: str) -> bool:
+        """
+        Unsubscribe from resource changes.
+
+        Args:
+            uri: URI of the resource
+            subscriber_id: Unique identifier for the subscriber
+
+        Returns:
+            True if unsubscription was successful
+        """
+        if uri in self._resource_subscriptions:
+            try:
+                self._resource_subscriptions[uri].remove(subscriber_id)
+                logger.debug(f"Subscriber {subscriber_id} unsubscribed from {uri}")
+                return True
+            except ValueError:
+                # Subscriber not in list
+                pass
+        return False
 
     @property
     def plugins(self):
@@ -315,6 +647,9 @@ class NextMCP:
 
         logger.info(f"Starting {self.name} on {host}:{port}")
         logger.info(f"Registered {len(self._tools)} tool(s)")
+        logger.info(f"Registered {len(self._prompts)} prompt(s)")
+        logger.info(f"Registered {len(self._resources)} resource(s)")
+        logger.info(f"Registered {len(self._resource_templates)} resource template(s)")
 
         # Create FastMCP server instance
         self._fastmcp_server = fastmcp.FastMCP(self.name)
@@ -322,9 +657,22 @@ class NextMCP:
         # Register all tools with FastMCP
         for tool_name, tool_fn in self._tools.items():
             logger.debug(f"Registering tool with FastMCP: {tool_name}")
-            # Note: Actual FastMCP registration API may differ
-            # This is a placeholder based on common patterns
             self._fastmcp_server.tool(tool_fn)
+
+        # Register all prompts with FastMCP
+        for prompt_name, prompt_fn in self._prompts.items():
+            logger.debug(f"Registering prompt with FastMCP: {prompt_name}")
+            self._fastmcp_server.prompt(prompt_fn)
+
+        # Register all resources with FastMCP
+        for uri, resource_fn in self._resources.items():
+            logger.debug(f"Registering resource with FastMCP: {uri}")
+            self._fastmcp_server.add_resource(uri, resource_fn)
+
+        # Register all resource templates with FastMCP
+        for pattern, template_fn in self._resource_templates.items():
+            logger.debug(f"Registering resource template with FastMCP: {pattern}")
+            self._fastmcp_server.add_template(pattern, template_fn)
 
         # Run the server
         logger.info(f"{self.name} is ready and listening for requests")
