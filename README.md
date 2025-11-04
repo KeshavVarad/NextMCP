@@ -12,15 +12,18 @@ NextMCP is a Python SDK built on top of FastMCP that provides a developer-friend
 
 ## Features
 
+- **Full MCP Specification** - Complete support for Tools, Prompts, and Resources primitives
 - **Minimal Boilerplate** - Get started with just a few lines of code
-- **Decorator-based API** - Register tools with simple `@app.tool()` decorators
-- **Async Support** - Full support for async/await with async tools and middleware
+- **Decorator-based API** - Register tools, prompts, and resources with simple decorators
+- **Async Support** - Full support for async/await across all primitives
+- **Argument Completion** - Smart suggestions for prompt arguments and resource templates
+- **Resource Subscriptions** - Real-time notifications when resources change
 - **WebSocket Transport** - Real-time bidirectional communication for interactive applications
-- **Global & Tool-specific Middleware** - Add logging, auth, rate limiting, caching, and more
+- **Global & Primitive-specific Middleware** - Add logging, auth, rate limiting, caching, and more
 - **Rich CLI** - Scaffold projects, run servers, and generate docs with `mcp` commands
 - **Configuration Management** - Support for `.env`, YAML config files, and environment variables
-- **Schema Validation** - Optional Pydantic integration for type-safe tool inputs
-- **Production Ready** - Built-in error handling, logging, and testing utilities
+- **Schema Validation** - Optional Pydantic integration for type-safe inputs
+- **Production Ready** - Built-in error handling, logging, and comprehensive testing
 
 ## Installation
 
@@ -271,6 +274,166 @@ def get_weather(city: str, units: str = "fahrenheit") -> dict:
     # Input automatically validated against WeatherInput schema
     return {"city": city, "temp": 72, "units": units}
 ```
+
+### Prompts
+
+Prompts are user-driven workflow templates that guide AI interactions. They're explicitly invoked by users (not automatically by the AI) and can reference available tools and resources.
+
+#### Basic Prompts
+
+```python
+from nextmcp import NextMCP
+
+app = NextMCP("my-server")
+
+@app.prompt()
+def vacation_planner(destination: str, budget: int) -> str:
+    """Plan a vacation itinerary."""
+    return f"""
+    Plan a vacation to {destination} with a budget of ${budget}.
+
+    Use these tools:
+    - flight_search: Find flights
+    - hotel_search: Find accommodations
+
+    Check these resources:
+    - resource://user/preferences
+    - resource://calendar/availability
+    """
+```
+
+#### Prompts with Argument Completion
+
+```python
+from nextmcp import argument
+
+@app.prompt(description="Research a topic", tags=["research"])
+@argument("topic", description="What to research", suggestions=["Python", "MCP", "FastMCP"])
+@argument("depth", suggestions=["basic", "detailed", "comprehensive"])
+def research_prompt(topic: str, depth: str = "basic") -> str:
+    """Generate a research prompt with the specified depth."""
+    return f"Research {topic} at {depth} level..."
+
+# Dynamic completion
+@app.prompt_completion("research_prompt", "topic")
+async def complete_topics(partial: str) -> list[str]:
+    """Provide dynamic topic suggestions."""
+    topics = await fetch_available_topics()
+    return [t for t in topics if partial.lower() in t.lower()]
+```
+
+#### Async Prompts
+
+```python
+@app.prompt(tags=["analysis"])
+async def analyze_prompt(data_source: str) -> str:
+    """Generate analysis prompt with real-time data."""
+    data = await fetch_data(data_source)
+    return f"Analyze this data: {data}"
+```
+
+**When to use prompts:**
+- Guide complex multi-step workflows
+- Provide templates for common tasks
+- Structure AI interactions
+- Reference available tools and resources
+
+See `examples/knowledge_base/` for a complete example using prompts.
+
+### Resources
+
+Resources provide read-only access to contextual data through unique URIs. They're application-driven and give the AI access to information without triggering actions.
+
+#### Direct Resources
+
+```python
+from nextmcp import NextMCP
+
+app = NextMCP("my-server")
+
+@app.resource("file:///logs/app.log", description="Application logs")
+def app_logs() -> str:
+    """Provide access to application logs."""
+    with open("/var/logs/app.log") as f:
+        return f.read()
+
+@app.resource("config://app/settings", mime_type="application/json")
+def app_settings() -> dict:
+    """Provide application configuration."""
+    return {
+        "theme": "dark",
+        "language": "en",
+        "max_results": 100
+    }
+```
+
+#### Resource Templates
+
+Templates allow parameterized access to dynamic resources:
+
+```python
+@app.resource_template("weather://forecast/{city}/{date}")
+async def weather_forecast(city: str, date: str) -> dict:
+    """Get weather forecast for a specific city and date."""
+    return await fetch_weather(city, date)
+
+@app.resource_template("file:///docs/{category}/{filename}")
+def documentation(category: str, filename: str) -> str:
+    """Access documentation files."""
+    return Path(f"/docs/{category}/{filename}").read_text()
+
+# Template parameter completion
+@app.template_completion("weather_forecast", "city")
+def complete_cities(partial: str) -> list[str]:
+    """Suggest city names."""
+    return ["London", "Paris", "Tokyo", "New York"]
+```
+
+#### Subscribable Resources
+
+Resources can notify subscribers when they change:
+
+```python
+@app.resource(
+    "config://live/settings",
+    subscribable=True,
+    max_subscribers=50
+)
+async def live_settings() -> dict:
+    """Provide live configuration that can change."""
+    return await load_live_config()
+
+# Notify subscribers when config changes
+app.notify_resource_changed("config://live/settings")
+
+# Manage subscriptions
+app.subscribe_to_resource("config://live/settings", "subscriber_id")
+app.unsubscribe_from_resource("config://live/settings", "subscriber_id")
+```
+
+#### Async Resources
+
+```python
+@app.resource("db://users/recent")
+async def recent_users() -> list[dict]:
+    """Get recently active users from database."""
+    return await db.query("SELECT * FROM users ORDER BY last_active DESC LIMIT 10")
+```
+
+**When to use resources:**
+- Provide read-only data access
+- Expose configuration and settings
+- Share application state
+- Offer real-time data feeds (with subscriptions)
+
+**Resource URIs can use any scheme:**
+- `file://` - File system access
+- `config://` - Configuration data
+- `db://` - Database queries
+- `api://` - External API data
+- Custom schemes for your use case
+
+See `examples/knowledge_base/` for a complete example using resources and templates.
 
 ### Configuration
 

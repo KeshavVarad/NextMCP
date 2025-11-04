@@ -5,6 +5,44 @@ All notable changes to NextMCP will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2025-11-04
+
+### Added
+
+#### Examples
+- **Knowledge Base Example** (`examples/knowledge_base/`): Comprehensive example demonstrating all three MCP primitives working together
+  - 3 Tools: search_knowledge, add_article, list_categories
+  - 3 Prompts: research_prompt, summary_report_prompt, document_prompt
+  - 4 Resources: stats, config, articles/{id}, category/{name}
+  - Shows practical usage of tools, prompts, and resources in a real application
+  - Includes argument/parameter completion examples
+  - Demonstrates subscribable resources
+
+#### Documentation
+- Added comprehensive **Prompts** section to README
+  - Basic prompts with examples
+  - Prompts with argument completion
+  - Dynamic completion functions
+  - Async prompts
+  - When to use prompts
+
+- Added comprehensive **Resources** section to README
+  - Direct resources with examples
+  - Resource templates with parameters
+  - Subscribable resources with notifications
+  - Async resources
+  - URI schemes and conventions
+  - When to use resources
+
+- Updated features list to highlight:
+  - Full MCP specification support
+  - Argument completion
+  - Resource subscriptions
+  - Cross-primitive middleware
+
+### Changed
+- Enhanced feature descriptions to emphasize all three primitives
+
 ## [0.2.0] - 2025-11-04
 
 ### Added
