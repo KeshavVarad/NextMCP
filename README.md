@@ -13,6 +13,9 @@ NextMCP is a Python SDK built on top of FastMCP that provides a developer-friend
 ## Features
 
 - **Full MCP Specification** - Complete support for Tools, Prompts, and Resources primitives
+- **Convention-Based Structure** - Next.js-inspired file-based organization with auto-discovery
+- **Zero-Config Setup** - Single-line `NextMCP.from_config()` for instant project setup
+- **Auto-Discovery** - Automatically discover and register primitives from directory structure
 - **Minimal Boilerplate** - Get started with just a few lines of code
 - **Decorator-based API** - Register tools, prompts, and resources with simple decorators
 - **Async Support** - Full support for async/await across all primitives
@@ -57,14 +60,97 @@ pip install nextmcp[dev]
 
 ## Quick Start
 
-### 1. Create a new project
+NextMCP offers two approaches: **Convention-Based** (recommended) for scalable projects, and **Manual** for simple use cases.
+
+### Convention-Based Approach (Recommended)
+
+Perfect for projects with multiple tools, prompts, and resources. Uses file-based organization for automatic discovery.
+
+#### 1. Create project structure
+
+```bash
+my-blog-server/
+├── nextmcp.config.yaml
+├── server.py
+├── tools/
+│   ├── __init__.py
+│   └── posts.py
+├── prompts/
+│   ├── __init__.py
+│   └── workflows.py
+└── resources/
+    ├── __init__.py
+    └── blog_resources.py
+```
+
+#### 2. Configure your project
+
+```yaml
+# nextmcp.config.yaml
+name: blog-server
+version: 1.0.0
+description: A blog management MCP server
+
+auto_discover: true
+
+discovery:
+  tools: tools/
+  prompts: prompts/
+  resources: resources/
+```
+
+#### 3. Write tools in organized files
+
+```python
+# tools/posts.py
+from nextmcp import NextMCP
+
+app = NextMCP.from_config()
+
+@app.tool()
+def create_post(title: str, content: str) -> dict:
+    """Create a new blog post"""
+    return {"id": 1, "title": title, "content": content}
+
+@app.tool()
+def list_posts() -> list:
+    """List all blog posts"""
+    return [{"id": 1, "title": "First Post"}]
+```
+
+#### 4. Single-line server setup
+
+```python
+# server.py
+from nextmcp import NextMCP
+
+# Auto-discovers all tools, prompts, and resources
+app = NextMCP.from_config()
+
+if __name__ == "__main__":
+    app.run()
+```
+
+#### 5. Run your server
+
+```bash
+python server.py
+```
+
+That's it! All tools, prompts, and resources are automatically discovered and registered.
+
+### Manual Approach
+
+For simple projects with just a few tools.
+
+#### 1. Create a new project
 
 ```bash
 mcp init my-bot
 cd my-bot
 ```
 
-### 2. Write your first tool
+#### 2. Write your first tool
 
 ```python
 # app.py
@@ -81,13 +167,236 @@ if __name__ == "__main__":
     app.run()
 ```
 
-### 3. Run your server
+#### 3. Run your server
 
 ```bash
 mcp run app.py
 ```
 
-That's it! Your MCP server is now running with the `greet` tool available.
+Your MCP server is now running with the `greet` tool available.
+
+## Convention-Based Project Structure
+
+NextMCP v0.3.0 introduces a powerful convention-based architecture inspired by Next.js's file-based routing. This approach enables automatic discovery and registration of tools, prompts, and resources from your directory structure, eliminating boilerplate and improving project organization.
+
+### Why Convention-Based?
+
+**Before (Manual Registration):**
+```python
+# app.py - 200+ lines of boilerplate
+from nextmcp import NextMCP
+
+app = NextMCP("my-server")
+
+@app.tool()
+def create_post(...):
+    ...
+
+@app.tool()
+def update_post(...):
+    ...
+
+@app.tool()
+def delete_post(...):
+    ...
+
+@app.prompt()
+def writing_workflow(...):
+    ...
+
+@app.resource("blog://posts/recent")
+def recent_posts():
+    ...
+
+# ... 20+ more primitives mixed together
+```
+
+**After (Convention-Based):**
+```python
+# server.py - Just 3 lines!
+from nextmcp import NextMCP
+
+app = NextMCP.from_config()
+
+if __name__ == "__main__":
+    app.run()
+```
+
+### Project Structure
+
+Organize your primitives in standard directories:
+
+```
+my-mcp-server/
+├── nextmcp.config.yaml      # Project configuration
+├── server.py                # Entry point
+├── tools/                   # Tool definitions
+│   ├── __init__.py
+│   ├── posts.py            # Post management tools
+│   └── comments.py         # Comment management tools
+├── prompts/                 # Prompt templates
+│   ├── __init__.py
+│   └── workflows.py        # Workflow prompts
+└── resources/               # Resource providers
+    ├── __init__.py
+    └── blog_resources.py   # Blog data resources
+```
+
+### How It Works
+
+#### 1. Auto-Discovery Engine
+
+NextMCP scans your directory structure and automatically discovers decorated functions:
+
+```python
+# tools/posts.py
+from nextmcp import NextMCP
+
+app = NextMCP.from_config()
+
+@app.tool()
+def create_post(title: str, content: str) -> dict:
+    """Create a new blog post"""
+    return {"id": 1, "title": title}
+
+@app.tool()
+def list_posts(limit: int = 10) -> list:
+    """List recent blog posts"""
+    return []
+```
+
+The discovery engine:
+- Recursively scans `tools/`, `prompts/`, and `resources/` directories
+- Imports Python modules and inspects decorated functions
+- Automatically registers all discovered primitives
+- Skips `__init__.py` and `test_*.py` files
+
+#### 2. Configuration File
+
+Control discovery behavior with `nextmcp.config.yaml`:
+
+```yaml
+name: my-mcp-server
+version: 1.0.0
+description: My awesome MCP server
+
+# Enable/disable auto-discovery
+auto_discover: true
+
+# Customize directory paths
+discovery:
+  tools: tools/
+  prompts: prompts/
+  resources: resources/
+
+# Server configuration
+server:
+  host: 0.0.0.0
+  port: 8000
+  transport: stdio
+
+# Middleware pipeline
+middleware:
+  - nextmcp.middleware.log_calls
+  - nextmcp.middleware.error_handler
+```
+
+#### 3. Loading from Config
+
+Use the `from_config()` class method for automatic setup:
+
+```python
+from nextmcp import NextMCP
+
+# Load configuration and auto-discover primitives
+app = NextMCP.from_config()
+
+# Optional: specify custom config file or base path
+app = NextMCP.from_config(
+    config_file="custom.yaml",
+    base_path="/path/to/project"
+)
+```
+
+### Discovery Rules
+
+The auto-discovery engine follows these rules:
+
+1. **Directory Scanning**: Recursively searches configured directories
+2. **Module Importing**: Dynamically imports all `.py` files
+3. **Decorator Detection**: Finds functions with MCP decorator markers
+4. **Automatic Registration**: Registers discovered primitives with the app
+5. **File Exclusions**: Skips `__init__.py` and `test_*.py` files
+
+### Organizing Large Projects
+
+For large projects, use subdirectories and modules:
+
+```
+tools/
+├── __init__.py
+├── posts/
+│   ├── __init__.py
+│   ├── create.py
+│   ├── update.py
+│   └── delete.py
+├── comments/
+│   ├── __init__.py
+│   └── moderate.py
+└── users/
+    ├── __init__.py
+    └── manage.py
+```
+
+All tools in subdirectories are automatically discovered.
+
+### Validation
+
+Validate your project structure:
+
+```python
+from nextmcp import validate_project_structure
+
+# Check if project follows conventions
+results = validate_project_structure()
+
+if results["valid"]:
+    print(f"✓ Found {results['stats']['tools']} tool files")
+    print(f"✓ Found {results['stats']['prompts']} prompt files")
+    print(f"✓ Found {results['stats']['resources']} resource files")
+else:
+    print("Errors:", results["errors"])
+    print("Warnings:", results["warnings"])
+```
+
+### Benefits
+
+1. **Separation of Concerns** - Tools, prompts, and resources in dedicated directories
+2. **Scalability** - Add new primitives by creating files, no registration needed
+3. **Team Collaboration** - Clear structure for multiple developers
+4. **Zero Boilerplate** - No manual registration code
+5. **Type Safety** - Full IDE support with organized modules
+6. **Testing** - Easy to test individual modules in isolation
+
+### Migrating from Manual Registration
+
+Existing manual projects work unchanged. To migrate gradually:
+
+```python
+# You can mix both approaches!
+from nextmcp import NextMCP
+
+# Start with auto-discovery
+app = NextMCP.from_config()
+
+# Add manual tools as needed
+@app.tool()
+def legacy_tool():
+    """This still works!"""
+    return "result"
+```
+
+See `examples/blog_server/` for a complete convention-based project.
 
 ## Core Concepts
 
@@ -879,6 +1188,7 @@ mcp version
 
 Check out the `examples/` directory for complete working examples:
 
+- **blog_server** - Convention-based project structure with auto-discovery (5 tools, 3 prompts, 4 resources)
 - **weather_bot** - A weather information server with multiple tools
 - **async_weather_bot** - Async version demonstrating concurrent operations and async middleware
 - **websocket_chat** - Real-time chat server using WebSocket transport
@@ -933,7 +1243,8 @@ pytest --cov=nextmcp
 
 NextMCP is organized into several modules:
 
-- **`core.py`** - Main `NextMCP` class and application lifecycle
+- **`core.py`** - Main `NextMCP` class, application lifecycle, and `from_config()` method
+- **`discovery.py`** - Auto-discovery engine for convention-based project structure
 - **`tools.py`** - Tool registration, metadata, and documentation generation
 - **`middleware.py`** - Built-in middleware for common use cases
 - **`config.py`** - Configuration management (YAML, .env, environment variables)
@@ -947,7 +1258,10 @@ NextMCP builds on FastMCP to provide:
 | Feature | FastMCP | NextMCP |
 |---------|---------|-----------|
 | Basic MCP server | ✅ | ✅ |
-| Tool registration | Manual | Decorator-based |
+| Tool registration | Manual | Decorator-based + auto-discovery |
+| Convention-based structure | ❌ | ✅ File-based organization |
+| Auto-discovery | ❌ | ✅ Automatic primitive registration |
+| Zero-config setup | ❌ | ✅ `NextMCP.from_config()` |
 | Async/await support | ❌ | ✅ Full support |
 | WebSocket transport | ❌ | ✅ Built-in |
 | Middleware | ❌ | Global + tool-specific |
@@ -962,36 +1276,37 @@ NextMCP builds on FastMCP to provide:
 
 ## Roadmap
 
+### Completed
+- [x] **v0.1.0** - Core MCP server with Tools primitive
+- [x] **v0.2.0** - Full MCP Primitives (Prompts, Resources, Resource Templates, Subscriptions)
+- [x] **v0.3.0** - Convention-Based Architecture (Auto-discovery, `from_config()`, Project structure)
 - [x] Async tool support
 - [x] WebSocket transport
 - [x] Plugin system
 - [x] Built-in monitoring and metrics
+
+### In Progress
 - [ ] Production deployment guides
 - [ ] Docker support
 - [ ] More example projects
 - [ ] Documentation site
 
-## Future Work
+### Planned
 
-NextMCP is evolving to become a complete implementation of the Model Context Protocol specification. Currently, only the **Tools** primitive is fully supported. Future versions will include:
+#### v0.4.0 - Authentication & Authorization
+- **Built-in Auth System**: next-auth inspired authentication for MCP
+- **Multiple Providers**: API keys, JWT, OAuth-like flows for MCP
+- **Role-Based Access Control (RBAC)**: Tool-level permissions
+- **Convention-Based**: `auth/` directory for auth providers
+- **Middleware Integration**: Seamless auth middleware
 
-### v0.2.0 - Full MCP Primitives Support
-- **Prompts**: User-driven workflow templates with argument completion
-- **Resources**: Read-only context providers with URI-based access
-- **Resource Templates**: Dynamic resources with parameter-based URIs
-- **Subscriptions**: Real-time notifications for resource changes
-
-### v0.3.0 - Convention-Based Architecture
-- **File-based Auto-Discovery**: Automatic discovery of tools, prompts, and resources from directory structure
-- **Project Manifest**: `nextmcp.config.yaml` for declarative configuration
-- **Hot Reload**: Development mode with automatic file watching
-- **Enhanced CLI**: `mcp dev`, `mcp validate`, `mcp test` commands
-
-### v0.4.0 - Production & Deployment
+#### v0.5.0 - Production & Deployment
 - **Deployment Manifests**: Generate Docker, AWS Lambda, and serverless configs
 - **One-Command Deploy**: `mcp deploy --target=aws-lambda`
 - **Production Builds**: Optimized bundles with `mcp build`
 - **Package Distribution**: `mcp package` for Docker, PyPI, and serverless
+- **Hot Reload**: Development mode with automatic file watching
+- **Enhanced CLI**: `mcp dev`, `mcp validate`, `mcp test` commands
 
 ## Contributing
 
