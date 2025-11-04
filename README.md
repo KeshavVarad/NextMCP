@@ -808,6 +808,28 @@ NextMCP builds on FastMCP to provide:
 - [ ] More example projects
 - [ ] Documentation site
 
+## Future Work
+
+NextMCP is evolving to become a complete implementation of the Model Context Protocol specification. Currently, only the **Tools** primitive is fully supported. Future versions will include:
+
+### v0.2.0 - Full MCP Primitives Support
+- **Prompts**: User-driven workflow templates with argument completion
+- **Resources**: Read-only context providers with URI-based access
+- **Resource Templates**: Dynamic resources with parameter-based URIs
+- **Subscriptions**: Real-time notifications for resource changes
+
+### v0.3.0 - Convention-Based Architecture
+- **File-based Auto-Discovery**: Automatic discovery of tools, prompts, and resources from directory structure
+- **Project Manifest**: `nextmcp.config.yaml` for declarative configuration
+- **Hot Reload**: Development mode with automatic file watching
+- **Enhanced CLI**: `mcp dev`, `mcp validate`, `mcp test` commands
+
+### v0.4.0 - Production & Deployment
+- **Deployment Manifests**: Generate Docker, AWS Lambda, and serverless configs
+- **One-Command Deploy**: `mcp deploy --target=aws-lambda`
+- **Production Builds**: Optimized bundles with `mcp build`
+- **Package Distribution**: `mcp package` for Docker, PyPI, and serverless
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
