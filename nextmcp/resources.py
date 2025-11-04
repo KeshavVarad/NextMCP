@@ -10,8 +10,6 @@ import logging
 import mimetypes
 import re
 from collections.abc import Callable
-from functools import wraps
-from typing import Any, get_type_hints
 from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
@@ -149,7 +147,9 @@ def resource(
         try:
             parsed = urlparse(uri)
             if not parsed.scheme:
-                logger.warning(f"Resource URI '{uri}' has no scheme. Consider using a proper URI format.")
+                logger.warning(
+                    f"Resource URI '{uri}' has no scheme. Consider using a proper URI format."
+                )
         except Exception as e:
             logger.warning(f"Invalid URI format '{uri}': {e}")
 
@@ -360,7 +360,7 @@ class ResourceRegistry:
         Returns:
             Tuple of (template_function, parameters) or None if no match
         """
-        for pattern, template_fn in self._templates.items():
+        for _pattern, template_fn in self._templates.items():
             template = getattr(template_fn, "_resource_template", None)
             if template and template.matches(uri):
                 params = template.extract_parameters(uri)

@@ -8,7 +8,6 @@ with argument completion support.
 import inspect
 import logging
 from collections.abc import Callable
-from functools import wraps
 from typing import Any, get_type_hints
 
 logger = logging.getLogger(__name__)

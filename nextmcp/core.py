@@ -127,7 +127,9 @@ class NextMCP:
         """
         return self._tools.copy()
 
-    def prompt(self, name: str | None = None, description: str | None = None, tags: list[str] | None = None):
+    def prompt(
+        self, name: str | None = None, description: str | None = None, tags: list[str] | None = None
+    ):
         """
         Decorator to register a function as an MCP prompt.
 
@@ -308,7 +310,9 @@ class NextMCP:
                 wrapped_fn = middleware(wrapped_fn)
 
             # Create template metadata
-            template = ResourceTemplate(uri_pattern=uri_pattern, description=description or fn.__doc__)
+            template = ResourceTemplate(
+                uri_pattern=uri_pattern, description=description or fn.__doc__
+            )
 
             # Store metadata
             wrapped_fn._resource_template = template
@@ -317,7 +321,9 @@ class NextMCP:
             wrapped_fn._is_async = is_async
 
             self._resource_templates[uri_pattern] = wrapped_fn
-            logger.debug(f"Registered {'async' if is_async else 'sync'} resource template: {uri_pattern}")
+            logger.debug(
+                f"Registered {'async' if is_async else 'sync'} resource template: {uri_pattern}"
+            )
 
             return wrapped_fn
 

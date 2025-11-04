@@ -197,7 +197,9 @@ class TestResourceTemplateClass:
 
     def test_template_creation(self):
         """Test creating a ResourceTemplate."""
-        template = ResourceTemplate(uri_pattern="weather://{city}/{date}", description="Weather forecast")
+        template = ResourceTemplate(
+            uri_pattern="weather://{city}/{date}", description="Weather forecast"
+        )
 
         assert template.uri_pattern == "weather://{city}/{date}"
         assert template.description == "Weather forecast"
@@ -578,7 +580,9 @@ async def test_async_resource_execution():
 def test_resource_metadata_extraction():
     """Test extracting metadata from resources."""
 
-    @resource("file:///test.json", name="Test", description="Test resource", mime_type="application/json")
+    @resource(
+        "file:///test.json", name="Test", description="Test resource", mime_type="application/json"
+    )
     def test_res() -> dict:
         return {}
 
