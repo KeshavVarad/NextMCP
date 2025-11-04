@@ -5,6 +5,85 @@ All notable changes to NextMCP will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-11-04
+
+### Added
+
+#### Convention-Based Project Structure
+- **Auto-Discovery Engine** (`nextmcp/discovery.py`): Automatically discover and register tools, prompts, and resources from directory structure
+  - `AutoDiscovery` class for scanning directories
+  - Discovers tools from `tools/` directory
+  - Discovers prompts from `prompts/` directory
+  - Discovers resources from `resources/` directory
+  - Supports nested directory structures
+  - Skips `__init__.py` and `test_*.py` files automatically
+
+- **NextMCP.from_config()**: Create applications with convention-based structure
+  - Load configuration from `nextmcp.config.yaml`
+  - Auto-discover all primitives from standard directories
+  - Zero-boilerplate server setup
+  - Configurable discovery paths
+  - Can be disabled with `auto_discover: false`
+
+- **Configuration System Enhancements**:
+  - Support for `nextmcp.config.yaml` configuration files
+  - Project manifest with metadata (name, version, description)
+  - Discovery path configuration
+  - Server settings (host, port, transport)
+  - Middleware configuration
+  - Feature flags (metrics, hot_reload, auto_docs)
+
+- **Project Validation**:
+  - `validate_project_structure()` function
+  - Validates convention-based directory structure
+  - Counts Python files in each directory
+  - Warns about missing `__init__.py` files
+  - Checks for config file presence
+
+#### Examples
+- **Blog Server Example** (`examples/blog_server/`): Complete convention-based example
+  - 5 Tools in `tools/posts.py`
+  - 3 Prompts in `prompts/workflows.py`
+  - 4 Resources in `resources/blog_resources.py`
+  - `nextmcp.config.yaml` configuration file
+  - Single-line server setup with `NextMCP.from_config()`
+  - Comprehensive README with comparison to manual approach
+
+#### Testing
+- 26 new comprehensive tests for auto-discovery (245 total, all passing)
+- `tests/test_discovery.py`: 19 tests for discovery engine
+- `tests/test_integration_discovery.py`: 7 integration tests for from_config()
+- Full coverage of:
+  - Auto-discovery functionality
+  - Config file loading
+  - Nested module discovery
+  - Error handling
+  - Project validation
+  - Integration with real project structures
+
+### Changed
+- Updated minimum test count from 228 to 235 tests
+- Enhanced Config class with convention-based defaults
+- Improved import handling in discovery engine to avoid conflicts
+
+### Technical Details
+- Convention-based structure similar to Next.js
+- Automatic primitive registration eliminates boilerplate
+- File-based organization for scalability
+- Works with or without configuration files
+- All changes are additive - fully backward compatible with v0.2.x
+
+### Key Differentiators from FastMCP
+- **Organization**: Single file → Convention-based directories with auto-discovery
+- **Configuration**: Imperative Python → Declarative YAML + conventions
+- **Project Structure**: Unstructured → Organized (tools/, prompts/, resources/)
+- **Setup**: Manual registration → One-line `NextMCP.from_config()`
+- **Modularity**: All in one file → Organized by primitive type
+- **Discoverability**: Must import/register → Auto-discovery from directories
+
+### Breaking Changes
+None - all changes are additive and backward compatible with v0.2.x
+
 ## [0.2.1] - 2025-11-04
 
 ### Added

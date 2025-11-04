@@ -1,0 +1,33 @@
+# NextMCP Configuration File
+name: blog-server
+version: 1.0.0
+description: A blog management MCP server with convention-based structure
+
+# Enable auto-discovery
+auto_discover: true
+
+# Discovery paths (defaults shown)
+discovery:
+  tools: tools/
+  prompts: prompts/
+  resources: resources/
+
+# Server settings
+server:
+  host: 0.0.0.0
+  port: 8000
+  transport: stdio
+
+# Global middleware (applied in order)
+middleware:
+  - nextmcp.middleware.log_calls
+  - nextmcp.middleware.error_handler
+
+# Feature flags
+features:
+  metrics:
+    enabled: false
+  hot_reload:
+    enabled: false
+  auto_docs:
+    enabled: true
