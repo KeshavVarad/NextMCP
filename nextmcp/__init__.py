@@ -17,10 +17,11 @@ Example:
         app.run()
 """
 
-__version__ = "0.2.1"
+__version__ = "0.3.0"
 
 from nextmcp.config import Config, load_config
 from nextmcp.core import NextMCP
+from nextmcp.discovery import AutoDiscovery, validate_project_structure
 from nextmcp.logging import LoggerContext, get_logger, log_function_call, setup_logging
 from nextmcp.metrics import (
     Counter,
@@ -100,6 +101,9 @@ __all__ = [
     # Config
     "Config",
     "load_config",
+    # Discovery
+    "AutoDiscovery",
+    "validate_project_structure",
     # Logging
     "setup_logging",
     "get_logger",

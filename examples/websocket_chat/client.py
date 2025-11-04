@@ -29,7 +29,7 @@ async def main():
             print("1. Listing available tools...")
             tools_info = await client.list_tools()
             print(f"   Available tools ({len(tools_info['tools'])}):")
-            for tool in tools_info['tools']:
+            for tool in tools_info["tools"]:
                 print(f"   - {tool['name']}: {tool['description']}")
             print()
 
@@ -41,11 +41,7 @@ async def main():
             # Send a chat message
             print("3. Sending a chat message...")
             result = await client.invoke_tool(
-                "send_message",
-                {
-                    "username": "Alice",
-                    "message": "Hello from the WebSocket client!"
-                }
+                "send_message", {"username": "Alice", "message": "Hello from the WebSocket client!"}
             )
             print(f"   Message sent: {result['status']}")
             print(f"   Timestamp: {result['message']['timestamp']}\n")
@@ -53,11 +49,7 @@ async def main():
             # Send another message
             print("4. Sending another message...")
             result = await client.invoke_tool(
-                "send_message",
-                {
-                    "username": "Bob",
-                    "message": "Hey Alice, WebSocket is awesome!"
-                }
+                "send_message", {"username": "Bob", "message": "Hey Alice, WebSocket is awesome!"}
             )
             print(f"   Message sent: {result['status']}\n")
 
@@ -66,7 +58,7 @@ async def main():
             result = await client.invoke_tool("get_messages", {"limit": 5})
             print(f"   Total messages in history: {result['total']}")
             print(f"   Recent messages:")
-            for msg in result['messages']:
+            for msg in result["messages"]:
                 print(f"   [{msg['timestamp']}] {msg['username']}: {msg['message']}")
             print()
 
@@ -79,10 +71,7 @@ async def main():
 
             # Test echo (concurrent calls)
             print("7. Testing concurrent tool invocation...")
-            echo_tasks = [
-                client.invoke_tool("echo", {"message": f"Message {i}"})
-                for i in range(5)
-            ]
+            echo_tasks = [client.invoke_tool("echo", {"message": f"Message {i}"}) for i in range(5)]
             results = await asyncio.gather(*echo_tasks)
             print(f"   Sent 5 concurrent echo requests")
             print(f"   All received back successfully ✓\n")
@@ -94,6 +83,7 @@ async def main():
     except Exception as e:
         print(f"\nError: {e}")
         import traceback
+
         traceback.print_exc()
 
 

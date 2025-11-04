@@ -3,11 +3,13 @@ Unit tests for nextmcp.tools module
 """
 
 import pytest
-from nextmcp.tools import tool, get_tool_metadata, generate_tool_docs, ToolRegistry
+
+from nextmcp.tools import ToolRegistry, generate_tool_docs, get_tool_metadata, tool
 
 
 def test_tool_decorator_basic():
     """Test basic tool decorator"""
+
     @tool()
     def my_tool(x: int) -> int:
         return x * 2
@@ -18,6 +20,7 @@ def test_tool_decorator_basic():
 
 def test_tool_decorator_with_name():
     """Test tool decorator with custom name"""
+
     @tool(name="custom_tool")
     def my_function():
         return "hello"
@@ -27,6 +30,7 @@ def test_tool_decorator_with_name():
 
 def test_tool_decorator_with_description():
     """Test tool decorator with description"""
+
     @tool(description="A test tool")
     def described_tool():
         return "test"
@@ -36,6 +40,7 @@ def test_tool_decorator_with_description():
 
 def test_get_tool_metadata():
     """Test extracting metadata from tool functions"""
+
     @tool(name="test_tool", description="A test tool")
     def my_tool(x: int, y: str = "default") -> str:
         return f"{x}: {y}"
@@ -53,6 +58,7 @@ def test_get_tool_metadata():
 
 def test_generate_tool_docs():
     """Test generating markdown documentation for tools"""
+
     @tool(name="add", description="Add two numbers")
     def add_numbers(a: int, b: int) -> int:
         return a + b
@@ -61,10 +67,7 @@ def test_generate_tool_docs():
     def greet(name: str, greeting: str = "Hello") -> str:
         return f"{greeting}, {name}!"
 
-    tools = {
-        "add": add_numbers,
-        "greet": greet
-    }
+    tools = {"add": add_numbers, "greet": greet}
 
     docs = generate_tool_docs(tools)
 

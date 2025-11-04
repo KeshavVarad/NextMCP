@@ -16,16 +16,10 @@ import random
 setup_logging(level="INFO")
 
 # Create the application with metrics enabled
-app = NextMCP(
-    name="metrics-demo",
-    description="Demonstration of NextMCP metrics system"
-)
+app = NextMCP(name="metrics-demo", description="Demonstration of NextMCP metrics system")
 
 # Enable automatic metrics collection
-app.enable_metrics(
-    collect_tool_metrics=True,
-    labels={"environment": "demo", "version": "1.0"}
-)
+app.enable_metrics(collect_tool_metrics=True, labels={"environment": "demo", "version": "1.0"})
 
 print("=" * 70)
 print("NextMCP Metrics & Monitoring Demo")
@@ -44,7 +38,7 @@ def slow_operation(value: int) -> dict:
     """A slow operation that takes some time."""
     # Simulate slow processing
     time.sleep(random.uniform(0.1, 0.3))
-    return {"result": value ** 2, "duration": "slow"}
+    return {"result": value**2, "duration": "slow"}
 
 
 @app.tool()

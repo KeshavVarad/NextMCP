@@ -2,17 +2,19 @@
 Tests for the NextMCP plugin system.
 """
 
-import pytest
-from pathlib import Path
 import tempfile
-import shutil
-from nextmcp import NextMCP, Plugin, PluginManager
+from pathlib import Path
 
+import pytest
+
+from nextmcp import NextMCP, Plugin, PluginManager
 
 # Test Plugins for testing
 
+
 class SimplePlugin(Plugin):
     """A simple test plugin."""
+
     name = "simple-plugin"
     version = "1.0.0"
     description = "A simple test plugin"
@@ -27,6 +29,7 @@ class SimplePlugin(Plugin):
 
 class MiddlewarePlugin(Plugin):
     """Plugin that adds middleware."""
+
     name = "middleware-plugin"
     version = "1.0.0"
 
@@ -35,6 +38,7 @@ class MiddlewarePlugin(Plugin):
             def wrapper(*args, **kwargs):
                 result = fn(*args, **kwargs)
                 return f"middleware:{result}"
+
             return wrapper
 
         app.add_middleware(custom_middleware)
@@ -42,6 +46,7 @@ class MiddlewarePlugin(Plugin):
 
 class DependentPlugin(Plugin):
     """Plugin with dependencies."""
+
     name = "dependent-plugin"
     version = "1.0.0"
     dependencies = ["simple-plugin"]
@@ -54,6 +59,7 @@ class DependentPlugin(Plugin):
 
 class LifecyclePlugin(Plugin):
     """Plugin that tracks lifecycle."""
+
     name = "lifecycle-plugin"
     version = "1.0.0"
 
@@ -74,6 +80,7 @@ class LifecyclePlugin(Plugin):
 
 
 # Tests
+
 
 def test_plugin_metadata():
     """Test plugin metadata creation."""
@@ -271,7 +278,8 @@ def test_discover_plugins_from_directory():
     # Create a temporary directory with a plugin file
     with tempfile.TemporaryDirectory() as tmpdir:
         plugin_file = Path(tmpdir) / "test_plugin.py"
-        plugin_file.write_text('''
+        plugin_file.write_text(
+            """
 from nextmcp import Plugin
 
 class DiscoveredPlugin(Plugin):
@@ -282,7 +290,8 @@ class DiscoveredPlugin(Plugin):
         @app.tool()
         def discovered_tool():
             return "discovered"
-''')
+"""
+        )
 
         manager.discover_plugins(tmpdir)
 
@@ -350,7 +359,8 @@ def test_nextmcp_discover_plugins():
 
     with tempfile.TemporaryDirectory() as tmpdir:
         plugin_file = Path(tmpdir) / "test_plugin.py"
-        plugin_file.write_text('''
+        plugin_file.write_text(
+            """
 from nextmcp import Plugin
 
 class ConveniencePlugin(Plugin):
@@ -359,7 +369,8 @@ class ConveniencePlugin(Plugin):
 
     def on_load(self, app):
         pass
-''')
+"""
+        )
 
         app.discover_plugins(tmpdir)
 

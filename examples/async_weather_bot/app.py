@@ -17,20 +17,14 @@ import random
 setup_logging(level="INFO")
 
 # Create the MCP application
-app = NextMCP(
-    name="async-weather-bot",
-    description="An async weather information MCP server"
-)
+app = NextMCP(name="async-weather-bot", description="An async weather information MCP server")
 
 # Add global async middleware
 app.add_middleware(log_calls_async)
 app.add_middleware(error_handler_async)
 
 
-@app.tool(
-    name="get_weather",
-    description="Get current weather information for a city (async)"
-)
+@app.tool(name="get_weather", description="Get current weather information for a city (async)")
 async def get_weather(city: str, units: str = "fahrenheit") -> dict:
     """
     Retrieve weather information for a specified city using async operations.
@@ -47,10 +41,7 @@ async def get_weather(city: str, units: str = "fahrenheit") -> dict:
 
     # This is a mock implementation
     # In a real application, you would use an async HTTP client like httpx
-    temperatures = {
-        "fahrenheit": random.randint(60, 90),
-        "celsius": random.randint(15, 32)
-    }
+    temperatures = {"fahrenheit": random.randint(60, 90), "celsius": random.randint(15, 32)}
 
     conditions = ["sunny", "cloudy", "rainy", "partly cloudy"]
 
@@ -61,14 +52,11 @@ async def get_weather(city: str, units: str = "fahrenheit") -> dict:
         "condition": random.choice(conditions),
         "humidity": random.randint(30, 80),
         "wind_speed": random.randint(5, 25),
-        "async": True  # Indicate this was fetched asynchronously
+        "async": True,  # Indicate this was fetched asynchronously
     }
 
 
-@app.tool(
-    name="get_forecast",
-    description="Get weather forecast for the next few days (async)"
-)
+@app.tool(name="get_forecast", description="Get weather forecast for the next few days (async)")
 async def get_forecast(city: str, days: int = 3) -> dict:
     """
     Get weather forecast for upcoming days using async operations.
@@ -91,24 +79,21 @@ async def get_forecast(city: str, days: int = 3) -> dict:
     conditions = ["sunny", "cloudy", "rainy", "partly cloudy"]
 
     for i in range(days):
-        forecast.append({
-            "day": i + 1,
-            "high": random.randint(65, 85),
-            "low": random.randint(45, 65),
-            "condition": random.choice(conditions),
-            "precipitation_chance": random.randint(0, 100)
-        })
+        forecast.append(
+            {
+                "day": i + 1,
+                "high": random.randint(65, 85),
+                "low": random.randint(45, 65),
+                "condition": random.choice(conditions),
+                "precipitation_chance": random.randint(0, 100),
+            }
+        )
 
-    return {
-        "city": city,
-        "forecast": forecast,
-        "async": True
-    }
+    return {"city": city, "forecast": forecast, "async": True}
 
 
 @app.tool(
-    name="get_batch_weather",
-    description="Get weather for multiple cities concurrently (async)"
+    name="get_batch_weather", description="Get weather for multiple cities concurrently (async)"
 )
 async def get_batch_weather(cities: list, units: str = "fahrenheit") -> dict:
     """
@@ -124,39 +109,28 @@ async def get_batch_weather(cities: list, units: str = "fahrenheit") -> dict:
     Returns:
         Dictionary containing weather for all cities
     """
+
     # Simulate fetching weather for all cities concurrently
     async def fetch_city_weather(city: str) -> dict:
         await asyncio.sleep(0.1)  # Simulate API delay
 
-        temperatures = {
-            "fahrenheit": random.randint(60, 90),
-            "celsius": random.randint(15, 32)
-        }
+        temperatures = {"fahrenheit": random.randint(60, 90), "celsius": random.randint(15, 32)}
         conditions = ["sunny", "cloudy", "rainy", "partly cloudy"]
 
         return {
             "city": city,
             "temperature": temperatures.get(units, temperatures["fahrenheit"]),
             "units": units,
-            "condition": random.choice(conditions)
+            "condition": random.choice(conditions),
         }
 
     # Fetch all cities concurrently using asyncio.gather
-    weather_data = await asyncio.gather(
-        *[fetch_city_weather(city) for city in cities]
-    )
+    weather_data = await asyncio.gather(*[fetch_city_weather(city) for city in cities])
 
-    return {
-        "cities": weather_data,
-        "total_cities": len(cities),
-        "fetched_concurrently": True
-    }
+    return {"cities": weather_data, "total_cities": len(cities), "fetched_concurrently": True}
 
 
-@app.tool(
-    name="search_cities",
-    description="Search for cities by name or region (async)"
-)
+@app.tool(name="search_cities", description="Search for cities by name or region (async)")
 async def search_cities(query: str, limit: int = 5) -> dict:
     """
     Search for cities matching a query using async operations.
@@ -185,16 +159,12 @@ async def search_cities(query: str, limit: int = 5) -> dict:
     # Simple search by city name
     query_lower = query.lower()
     results = [
-        city for city in cities
+        city
+        for city in cities
         if query_lower in city["name"].lower() or query_lower in city["region"].lower()
     ]
 
-    return {
-        "query": query,
-        "results": results[:limit],
-        "total_found": len(results),
-        "async": True
-    }
+    return {"query": query, "results": results[:limit], "total_found": len(results), "async": True}
 
 
 # Example of running async tools directly (for testing)

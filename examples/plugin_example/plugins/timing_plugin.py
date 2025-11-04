@@ -32,6 +32,7 @@ class TimingPlugin(Plugin):
 
         def timing_middleware(fn):
             """Middleware that times function execution."""
+
             def wrapper(*args, **kwargs):
                 if not self.timing_enabled:
                     return fn(*args, **kwargs)
@@ -41,10 +42,11 @@ class TimingPlugin(Plugin):
                 end_time = time.time()
                 elapsed = (end_time - start_time) * 1000  # Convert to ms
 
-                tool_name = getattr(fn, '_tool_name', fn.__name__)
+                tool_name = getattr(fn, "_tool_name", fn.__name__)
                 print(f"⏱️  Tool '{tool_name}' took {elapsed:.2f}ms")
 
                 return result
+
             return wrapper
 
         app.add_middleware(timing_middleware)

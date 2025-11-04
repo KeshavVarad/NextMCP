@@ -14,10 +14,7 @@ from nextmcp import NextMCP, setup_logging
 setup_logging(level="INFO")
 
 # Create the application
-app = NextMCP(
-    name="plugin-demo",
-    description="Demonstration of NextMCP plugin system"
-)
+app = NextMCP(name="plugin-demo", description="Demonstration of NextMCP plugin system")
 
 print("=" * 60)
 print("NextMCP Plugin System Demo")
@@ -54,9 +51,9 @@ print("-" * 60)
 tools = app.get_tools()
 for tool_name in sorted(tools.keys()):
     tool = tools[tool_name]
-    desc = getattr(tool, '_tool_description', 'No description')
+    desc = getattr(tool, "_tool_description", "No description")
     if desc:
-        desc = desc.split('\n')[0]  # First line only
+        desc = desc.split("\n")[0]  # First line only
     print(f"  • {tool_name}: {desc}")
 print()
 
@@ -67,13 +64,13 @@ print("=" * 60)
 # Math plugin tools
 print("\n1. Math Plugin Tools:")
 print("-" * 60)
-add_result = tools['add'](5, 3)
+add_result = tools["add"](5, 3)
 print(f"add(5, 3) = {add_result}")
 
-multiply_result = tools['multiply'](4, 7)
+multiply_result = tools["multiply"](4, 7)
 print(f"multiply(4, 7) = {multiply_result}")
 
-power_result = tools['power'](2, 8)
+power_result = tools["power"](2, 8)
 print(f"power(2, 8) = {power_result}")
 
 # String plugin tools

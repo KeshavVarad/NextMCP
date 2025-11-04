@@ -16,20 +16,14 @@ import random
 setup_logging(level="INFO")
 
 # Create the MCP application
-app = NextMCP(
-    name="weather-bot",
-    description="A simple weather information MCP server"
-)
+app = NextMCP(name="weather-bot", description="A simple weather information MCP server")
 
 # Add global middleware
 app.add_middleware(log_calls)
 app.add_middleware(error_handler)
 
 
-@app.tool(
-    name="get_weather",
-    description="Get current weather information for a city"
-)
+@app.tool(name="get_weather", description="Get current weather information for a city")
 def get_weather(city: str, units: str = "fahrenheit") -> dict:
     """
     Retrieve weather information for a specified city.
@@ -43,10 +37,7 @@ def get_weather(city: str, units: str = "fahrenheit") -> dict:
     """
     # This is a mock implementation
     # In a real application, you would call a weather API
-    temperatures = {
-        "fahrenheit": random.randint(60, 90),
-        "celsius": random.randint(15, 32)
-    }
+    temperatures = {"fahrenheit": random.randint(60, 90), "celsius": random.randint(15, 32)}
 
     conditions = ["sunny", "cloudy", "rainy", "partly cloudy"]
 
@@ -56,14 +47,11 @@ def get_weather(city: str, units: str = "fahrenheit") -> dict:
         "units": units,
         "condition": random.choice(conditions),
         "humidity": random.randint(30, 80),
-        "wind_speed": random.randint(5, 25)
+        "wind_speed": random.randint(5, 25),
     }
 
 
-@app.tool(
-    name="get_forecast",
-    description="Get weather forecast for the next few days"
-)
+@app.tool(name="get_forecast", description="Get weather forecast for the next few days")
 def get_forecast(city: str, days: int = 3) -> dict:
     """
     Get weather forecast for upcoming days.
@@ -83,24 +71,20 @@ def get_forecast(city: str, days: int = 3) -> dict:
     conditions = ["sunny", "cloudy", "rainy", "partly cloudy"]
 
     for i in range(days):
-        forecast.append({
-            "day": i + 1,
-            "high": random.randint(65, 85),
-            "low": random.randint(45, 65),
-            "condition": random.choice(conditions),
-            "precipitation_chance": random.randint(0, 100)
-        })
+        forecast.append(
+            {
+                "day": i + 1,
+                "high": random.randint(65, 85),
+                "low": random.randint(45, 65),
+                "condition": random.choice(conditions),
+                "precipitation_chance": random.randint(0, 100),
+            }
+        )
 
-    return {
-        "city": city,
-        "forecast": forecast
-    }
+    return {"city": city, "forecast": forecast}
 
 
-@app.tool(
-    name="search_cities",
-    description="Search for cities by name or region"
-)
+@app.tool(name="search_cities", description="Search for cities by name or region")
 def search_cities(query: str, limit: int = 5) -> dict:
     """
     Search for cities matching a query.
@@ -126,15 +110,12 @@ def search_cities(query: str, limit: int = 5) -> dict:
     # Simple search by city name
     query_lower = query.lower()
     results = [
-        city for city in cities
+        city
+        for city in cities
         if query_lower in city["name"].lower() or query_lower in city["region"].lower()
     ]
 
-    return {
-        "query": query,
-        "results": results[:limit],
-        "total_found": len(results)
-    }
+    return {"query": query, "results": results[:limit], "total_found": len(results)}
 
 
 # Run the application

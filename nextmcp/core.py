@@ -6,6 +6,7 @@ middleware support, and server lifecycle management.
 import inspect
 import logging
 from collections.abc import Callable
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +52,120 @@ class NextMCP:
         self._metrics_enabled = False
 
         logger.info(f"Initializing NextMCP application: {self.name}")
+
+    @classmethod
+    def from_config(cls, config_file: str = "nextmcp.config.yaml", base_path: str | None = None):
+        """
+        Create a NextMCP application from a configuration file with auto-discovery.
+
+        This is the convention-based approach that automatically discovers and registers
+        tools, prompts, and resources from directory structure.
+
+        Args:
+            config_file: Path to the configuration file (default: nextmcp.config.yaml)
+            base_path: Base directory for the project (default: current directory)
+
+        Returns:
+            NextMCP instance with auto-discovered primitives
+
+        Example:
+            # With nextmcp.config.yaml in current directory
+            app = NextMCP.from_config()
+
+            # With custom config file
+            app = NextMCP.from_config("custom-config.yaml")
+
+            if __name__ == "__main__":
+                app.run()
+        """
+        from nextmcp.config import Config
+        from nextmcp.discovery import AutoDiscovery
+
+        base_path = Path(base_path) if base_path else Path.cwd()
+
+        # Load configuration
+        config_path = base_path / config_file
+        config_file_exists = config_path.exists()
+
+        if not config_file_exists:
+            logger.warning(f"Config file not found: {config_path}. Using defaults.")
+            config = Config()
+        else:
+            config = Config(config_file=str(config_path))
+
+        # Extract project metadata
+        name = config.get("name", "mcp-server")
+        description = config.get("description", f"{name} MCP Server")
+
+        # Create instance
+        app = cls(name=name, description=description)
+
+        # Check if auto-discovery is enabled
+        # When using from_config(), auto-discover defaults to True (convention-based approach)
+        # When there's an explicit config file, respect its auto_discover setting
+        if config_file_exists:
+            auto_discover = config.get("auto_discover", True)
+        else:
+            # No config file = pure convention-based, so default to True
+            auto_discover = True
+
+        if auto_discover:
+            # Get discovery paths from config
+            discovery_config = config.get(
+                "discovery",
+                {
+                    "tools": "tools/",
+                    "prompts": "prompts/",
+                    "resources": "resources/",
+                },
+            )
+
+            # Initialize auto-discovery
+            discovery = AutoDiscovery(base_path=base_path)
+
+            # Discover and register all primitives
+            logger.info(f"Auto-discovering primitives in {base_path}")
+            results = discovery.discover_all(
+                tools_dir=discovery_config.get("tools", "tools"),
+                prompts_dir=discovery_config.get("prompts", "prompts"),
+                resources_dir=discovery_config.get("resources", "resources"),
+            )
+
+            # Register discovered tools
+            for tool_name, tool_fn in results.get("tools", []):
+                app._tools[tool_name] = tool_fn
+                logger.debug(f"Registered tool: {tool_name}")
+
+            # Register discovered prompts
+            for prompt_name, prompt_fn in results.get("prompts", []):
+                app._prompts[prompt_name] = prompt_fn
+                logger.debug(f"Registered prompt: {prompt_name}")
+
+            # Register discovered resources
+            for resource_uri, resource_fn in results.get("resources", []):
+                # Check if it's a template or direct resource
+                if hasattr(resource_fn, "_resource_template"):
+                    app._resource_templates[resource_uri] = resource_fn
+                    logger.debug(f"Registered resource template: {resource_uri}")
+                else:
+                    app._resources[resource_uri] = resource_fn
+                    logger.debug(f"Registered resource: {resource_uri}")
+
+            logger.info(
+                f"Auto-discovery complete: {len(results['tools'])} tools, "
+                f"{len(results['prompts'])} prompts, {len(results['resources'])} resources"
+            )
+
+        # Apply global middleware from config
+        middleware_list = config.get("middleware", [])
+        for middleware_name in middleware_list:
+            # TODO: Load and apply middleware from config
+            logger.debug(f"TODO: Load middleware: {middleware_name}")
+
+        # Store config for later use
+        app._config = config
+
+        return app
 
     def add_middleware(self, middleware_fn: Callable) -> None:
         """
