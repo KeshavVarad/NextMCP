@@ -7,8 +7,9 @@ This demonstrates:
 - Tracking state in plugins
 """
 
-from nextmcp import Plugin
 import time
+
+from nextmcp import Plugin
 
 
 class TimingPlugin(Plugin):

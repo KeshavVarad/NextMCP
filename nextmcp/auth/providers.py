@@ -4,11 +4,10 @@ Built-in authentication providers for NextMCP.
 This module provides ready-to-use authentication providers for common use cases.
 """
 
-import hashlib
-import hmac
 import logging
 import secrets
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from nextmcp.auth.core import AuthContext, AuthProvider, AuthResult, Permission, Role
 
@@ -148,10 +147,10 @@ class JWTProvider(AuthProvider):
             import jwt  # noqa: F401
 
             self._jwt = jwt
-        except ImportError:
+        except ImportError as err:
             raise ImportError(
                 "PyJWT is required for JWT authentication. " "Install with: pip install PyJWT"
-            )
+            ) from err
 
     async def authenticate(self, credentials: dict[str, Any]) -> AuthResult:
         """

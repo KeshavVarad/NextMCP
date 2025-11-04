@@ -9,9 +9,9 @@ This example demonstrates:
 """
 
 import asyncio
-from nextmcp import NextMCP, setup_logging, log_calls_async, error_handler_async
-from typing import Optional
 import random
+
+from nextmcp import NextMCP, error_handler_async, log_calls_async, setup_logging
 
 # Setup logging
 setup_logging(level="INFO")

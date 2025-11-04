@@ -6,7 +6,6 @@ Tests for APIKeyProvider, JWTProvider, and SessionProvider.
 
 import pytest
 
-from nextmcp.auth.core import AuthContext, AuthResult, Permission, Role
 from nextmcp.auth.providers import APIKeyProvider, JWTProvider, SessionProvider
 
 
@@ -15,9 +14,7 @@ class TestAPIKeyProvider:
 
     def test_provider_initialization(self):
         """Test basic provider initialization."""
-        provider = APIKeyProvider(
-            valid_keys={"test-key": {"user_id": "user1", "roles": ["admin"]}}
-        )
+        provider = APIKeyProvider(valid_keys={"test-key": {"user_id": "user1", "roles": ["admin"]}})
 
         assert provider.valid_keys == {"test-key": {"user_id": "user1", "roles": ["admin"]}}
 
@@ -200,9 +197,7 @@ class TestJWTProvider:
         """Test JWT with custom claims."""
         provider = JWTProvider(secret_key="test-secret")
 
-        token = provider.create_token(
-            user_id="user123", custom_field="custom_value", number=42
-        )
+        token = provider.create_token(user_id="user123", custom_field="custom_value", number=42)
 
         result = await provider.authenticate({"token": token})
 
@@ -350,9 +345,9 @@ class TestSessionProvider:
         provider = SessionProvider(session_timeout=0)  # Expire immediately
 
         # Create several sessions
-        session1 = provider.create_session(user_id="user1")
-        session2 = provider.create_session(user_id="user2")
-        session3 = provider.create_session(user_id="user3")
+        _session1 = provider.create_session(user_id="user1")
+        _session2 = provider.create_session(user_id="user2")
+        _session3 = provider.create_session(user_id="user3")
 
         assert len(provider._sessions) == 3
 
@@ -372,8 +367,8 @@ class TestSessionProvider:
         provider = SessionProvider(session_timeout=3600)
 
         # Create sessions
-        session1 = provider.create_session(user_id="user1")
-        session2 = provider.create_session(user_id="user2")
+        _session1 = provider.create_session(user_id="user1")
+        _session2 = provider.create_session(user_id="user2")
 
         # Cleanup (none should be expired)
         cleaned = provider.cleanup_expired_sessions()

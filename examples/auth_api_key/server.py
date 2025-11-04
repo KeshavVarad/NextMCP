@@ -19,7 +19,6 @@ Testing:
     python client.py --api-key wrong-key
 """
 
-import asyncio
 
 from nextmcp import NextMCP
 from nextmcp.auth import (

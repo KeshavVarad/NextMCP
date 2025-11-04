@@ -7,9 +7,10 @@ authentication and authorization requirements.
 
 import functools
 import logging
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
-from nextmcp.auth.core import AuthContext, AuthProvider, AuthResult
+from nextmcp.auth.core import AuthContext, AuthProvider
 from nextmcp.auth.rbac import PermissionDeniedError
 
 logger = logging.getLogger(__name__)
@@ -277,9 +278,7 @@ def requires_permission(*required_permissions: str) -> Callable:
             auth_context = args[0]
 
             # Check if user has any of the required permissions
-            has_permission = any(
-                auth_context.has_permission(perm) for perm in required_permissions
-            )
+            has_permission = any(auth_context.has_permission(perm) for perm in required_permissions)
 
             if not has_permission:
                 perms_str = ", ".join(required_permissions)
@@ -329,9 +328,7 @@ def requires_permission_async(*required_permissions: str) -> Callable:
             auth_context = args[0]
 
             # Check if user has any of the required permissions
-            has_permission = any(
-                auth_context.has_permission(perm) for perm in required_permissions
-            )
+            has_permission = any(auth_context.has_permission(perm) for perm in required_permissions)
 
             if not has_permission:
                 perms_str = ", ".join(required_permissions)

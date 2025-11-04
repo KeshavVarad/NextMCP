@@ -16,7 +16,6 @@ Requirements:
     pip install PyJWT
 """
 
-import asyncio
 
 from nextmcp import NextMCP
 from nextmcp.auth import AuthContext, JWTProvider, requires_auth_async, requires_role_async

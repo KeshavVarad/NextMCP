@@ -9,6 +9,7 @@ This example demonstrates:
 """
 
 import asyncio
+
 from nextmcp.transport import WebSocketClient
 
 
@@ -57,7 +58,7 @@ async def main():
             print("5. Retrieving recent messages...")
             result = await client.invoke_tool("get_messages", {"limit": 5})
             print(f"   Total messages in history: {result['total']}")
-            print(f"   Recent messages:")
+            print("   Recent messages:")
             for msg in result["messages"]:
                 print(f"   [{msg['timestamp']}] {msg['username']}: {msg['message']}")
             print()
@@ -73,8 +74,8 @@ async def main():
             print("7. Testing concurrent tool invocation...")
             echo_tasks = [client.invoke_tool("echo", {"message": f"Message {i}"}) for i in range(5)]
             results = await asyncio.gather(*echo_tasks)
-            print(f"   Sent 5 concurrent echo requests")
-            print(f"   All received back successfully ✓\n")
+            print("   Sent 5 concurrent echo requests")
+            print("   All received back successfully ✓\n")
 
             print("=" * 60)
             print("All tests completed successfully!")

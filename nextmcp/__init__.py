@@ -20,6 +20,7 @@ Example:
 __version__ = "0.4.0"
 
 from nextmcp.auth import (
+    RBAC,
     APIKeyProvider,
     AuthContext,
     AuthProvider,
@@ -27,7 +28,6 @@ from nextmcp.auth import (
     JWTProvider,
     Permission,
     PermissionDeniedError,
-    RBAC,
     Role,
     SessionProvider,
     requires_auth,

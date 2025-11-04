@@ -8,9 +8,10 @@ This example shows:
 - JSON format export
 """
 
-from nextmcp import NextMCP, setup_logging
-import time
 import random
+import time
+
+from nextmcp import NextMCP, setup_logging
 
 # Setup logging
 setup_logging(level="INFO")

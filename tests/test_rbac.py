@@ -135,9 +135,7 @@ class TestAuthContext:
 
     def test_auth_context_creation(self):
         """Test basic auth context creation."""
-        context = AuthContext(
-            authenticated=True, user_id="user123", username="alice"
-        )
+        context = AuthContext(authenticated=True, user_id="user123", username="alice")
 
         assert context.authenticated is True
         assert context.user_id == "user123"
@@ -443,9 +441,7 @@ class TestPermissionDeniedError:
 
     def test_error_creation(self):
         """Test creating permission denied error."""
-        error = PermissionDeniedError(
-            "Access denied", required="admin:users", user_id="user123"
-        )
+        error = PermissionDeniedError("Access denied", required="admin:users", user_id="user123")
 
         assert str(error) == "Access denied"
         assert error.required == "admin:users"

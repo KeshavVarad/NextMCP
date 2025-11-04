@@ -18,12 +18,11 @@ Usage:
 
 from nextmcp import NextMCP
 from nextmcp.auth import (
+    RBAC,
     APIKeyProvider,
     AuthContext,
-    RBAC,
     requires_auth_async,
     requires_permission_async,
-    requires_role_async,
 )
 
 # Create the MCP app
@@ -149,6 +148,7 @@ async def check_my_permissions(auth: AuthContext) -> dict:
 
 
 # Permission-based access control examples
+
 
 @app.tool()
 @requires_auth_async(provider=api_key_provider)

@@ -9,10 +9,10 @@ This example demonstrates:
 """
 
 import asyncio
-from nextmcp import NextMCP, setup_logging, log_calls_async, error_handler_async
-from nextmcp.transport import WebSocketTransport
 from datetime import datetime, timezone
-from typing import List
+
+from nextmcp import NextMCP, error_handler_async, log_calls_async, setup_logging
+from nextmcp.transport import WebSocketTransport
 
 # Setup logging
 setup_logging(level="INFO")
@@ -27,7 +27,7 @@ app.add_middleware(log_calls_async)
 app.add_middleware(error_handler_async)
 
 # Store chat messages in memory
-chat_history: List[dict] = []
+chat_history: list[dict] = []
 
 
 @app.tool(name="send_message", description="Send a chat message")
