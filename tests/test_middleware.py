@@ -3,19 +3,20 @@ Unit tests for nextmcp.middleware module
 """
 
 import pytest
-import time
+
 from nextmcp.middleware import (
-    log_calls,
-    require_auth,
-    error_handler,
-    rate_limit,
-    validate_inputs,
     cache_results,
+    error_handler,
+    log_calls,
+    rate_limit,
+    require_auth,
+    validate_inputs,
 )
 
 
 def test_log_calls_middleware():
     """Test that log_calls middleware logs function calls"""
+
     @log_calls
     def add(a: int, b: int) -> int:
         return a + b
@@ -26,6 +27,7 @@ def test_log_calls_middleware():
 
 def test_error_handler_middleware():
     """Test that error_handler catches exceptions and returns error dict"""
+
     @error_handler
     def failing_function():
         raise ValueError("Test error")
@@ -93,6 +95,7 @@ def test_rate_limit_middleware():
 
 def test_validate_inputs_middleware():
     """Test input validation middleware"""
+
     def validate_positive(value):
         if value <= 0:
             raise ValueError("Must be positive")

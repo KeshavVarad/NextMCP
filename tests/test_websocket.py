@@ -9,11 +9,13 @@ This module tests:
 - Error handling
 """
 
-import pytest
 import asyncio
 import json
+
+import pytest
+
 from nextmcp import NextMCP
-from nextmcp.transport import WebSocketTransport, WebSocketClient, WSMessage
+from nextmcp.transport import WebSocketClient, WebSocketTransport, WSMessage
 
 # Skip all tests if websockets is not available
 pytest.importorskip("websockets")
@@ -91,9 +93,7 @@ class TestWebSocketTransport:
         transport = WebSocketTransport(app)
 
         # Start server in background
-        server_task = asyncio.create_task(
-            transport.start(host="127.0.0.1", port=8766)
-        )
+        server_task = asyncio.create_task(transport.start(host="127.0.0.1", port=8766))
 
         # Give it time to start
         await asyncio.sleep(0.2)
@@ -119,9 +119,7 @@ class TestWebSocketTransport:
         transport = WebSocketTransport(app)
 
         # Start server
-        server_task = asyncio.create_task(
-            transport.start(host="127.0.0.1", port=8767)
-        )
+        server_task = asyncio.create_task(transport.start(host="127.0.0.1", port=8767))
 
         # Give server time to start
         await asyncio.sleep(0.2)
@@ -158,9 +156,7 @@ class TestWebSocketTransport:
         transport = WebSocketTransport(app)
 
         # Start server
-        server_task = asyncio.create_task(
-            transport.start(host="127.0.0.1", port=8768)
-        )
+        server_task = asyncio.create_task(transport.start(host="127.0.0.1", port=8768))
 
         await asyncio.sleep(0.2)
 
@@ -196,9 +192,7 @@ class TestWebSocketTransport:
         transport = WebSocketTransport(app)
 
         # Start server
-        server_task = asyncio.create_task(
-            transport.start(host="127.0.0.1", port=8769)
-        )
+        server_task = asyncio.create_task(transport.start(host="127.0.0.1", port=8769))
 
         await asyncio.sleep(0.2)
 
@@ -227,9 +221,7 @@ class TestWebSocketTransport:
         transport = WebSocketTransport(app)
 
         # Start server
-        server_task = asyncio.create_task(
-            transport.start(host="127.0.0.1", port=8770)
-        )
+        server_task = asyncio.create_task(transport.start(host="127.0.0.1", port=8770))
 
         await asyncio.sleep(0.2)
 
@@ -259,19 +251,14 @@ class TestWebSocketTransport:
         transport = WebSocketTransport(app)
 
         # Start server
-        server_task = asyncio.create_task(
-            transport.start(host="127.0.0.1", port=8771)
-        )
+        server_task = asyncio.create_task(transport.start(host="127.0.0.1", port=8771))
 
         await asyncio.sleep(0.2)
 
         try:
             async with WebSocketClient("ws://127.0.0.1:8771") as client:
                 # Invoke multiple tools concurrently
-                tasks = [
-                    client.invoke_tool("slow_double", {"x": i})
-                    for i in range(5)
-                ]
+                tasks = [client.invoke_tool("slow_double", {"x": i}) for i in range(5)]
 
                 results = await asyncio.gather(*tasks)
                 assert results == [0, 2, 4, 6, 8]
@@ -295,9 +282,7 @@ class TestWebSocketTransport:
         transport = WebSocketTransport(app)
 
         # Start server
-        server_task = asyncio.create_task(
-            transport.start(host="127.0.0.1", port=8772)
-        )
+        server_task = asyncio.create_task(transport.start(host="127.0.0.1", port=8772))
 
         await asyncio.sleep(0.2)
 
@@ -326,9 +311,7 @@ class TestWebSocketTransport:
         transport = WebSocketTransport(app)
 
         # Start server
-        server_task = asyncio.create_task(
-            transport.start(host="127.0.0.1", port=8773)
-        )
+        server_task = asyncio.create_task(transport.start(host="127.0.0.1", port=8773))
 
         await asyncio.sleep(0.2)
 
@@ -352,9 +335,7 @@ class TestWebSocketTransport:
         transport = WebSocketTransport(app)
 
         # Start server
-        server_task = asyncio.create_task(
-            transport.start(host="127.0.0.1", port=8774)
-        )
+        server_task = asyncio.create_task(transport.start(host="127.0.0.1", port=8774))
 
         await asyncio.sleep(0.2)
 
@@ -383,9 +364,7 @@ class TestWebSocketTransport:
         transport = WebSocketTransport(app)
 
         # Start server
-        server_task = asyncio.create_task(
-            transport.start(host="127.0.0.1", port=8775)
-        )
+        server_task = asyncio.create_task(transport.start(host="127.0.0.1", port=8775))
 
         await asyncio.sleep(0.2)
 
@@ -417,9 +396,7 @@ class TestWebSocketClient:
         app = NextMCP("test-app")
         transport = WebSocketTransport(app)
 
-        server_task = asyncio.create_task(
-            transport.start(host="127.0.0.1", port=8776)
-        )
+        server_task = asyncio.create_task(transport.start(host="127.0.0.1", port=8776))
 
         await asyncio.sleep(0.2)
 
@@ -443,9 +420,7 @@ class TestWebSocketClient:
         app = NextMCP("test-app")
         transport = WebSocketTransport(app)
 
-        server_task = asyncio.create_task(
-            transport.start(host="127.0.0.1", port=8777)
-        )
+        server_task = asyncio.create_task(transport.start(host="127.0.0.1", port=8777))
 
         await asyncio.sleep(0.2)
 

@@ -4,8 +4,18 @@ from nextmcp import tool
 
 # In-memory storage for demo
 POSTS = {
-    "1": {"id": "1", "title": "Welcome to NextMCP", "content": "This is the first post", "author": "admin"},
-    "2": {"id": "2", "title": "Convention-based Structure", "content": "Auto-discovery is awesome!", "author": "admin"},
+    "1": {
+        "id": "1",
+        "title": "Welcome to NextMCP",
+        "content": "This is the first post",
+        "author": "admin",
+    },
+    "2": {
+        "id": "2",
+        "title": "Convention-based Structure",
+        "content": "Auto-discovery is awesome!",
+        "author": "admin",
+    },
 }
 
 

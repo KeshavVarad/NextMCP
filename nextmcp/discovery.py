@@ -185,7 +185,7 @@ class AutoDiscovery:
                 return []
 
             discovered = []
-            for name, obj in inspect.getmembers(module):
+            for _name, obj in inspect.getmembers(module):
                 # Check if object has the marker attribute (indicating decoration)
                 if hasattr(obj, marker_attribute) and callable(obj):
                     # Get the name from the marker attribute
@@ -218,16 +218,15 @@ class AutoDiscovery:
                 return []
 
             discovered = []
-            for name, obj in inspect.getmembers(module):
+            for _name, obj in inspect.getmembers(module):
                 # Check if object has _resource_template attribute
                 if hasattr(obj, "_resource_template") and callable(obj):
-                    template = getattr(obj, "_resource_template")
+                    template = obj._resource_template
                     # Use uri_pattern as the identifier
                     uri_pattern = template.uri_pattern
                     discovered.append((uri_pattern, obj))
                     logger.debug(
-                        f"Discovered resource template: {uri_pattern} "
-                        f"from {module_path.name}"
+                        f"Discovered resource template: {uri_pattern} " f"from {module_path.name}"
                     )
 
             return discovered
@@ -299,8 +298,7 @@ class FileWatcher:
     def start(self) -> None:
         """Start watching directories for changes."""
         try:
-            import watchdog.observers
-            import watchdog.events
+            import watchdog.events  # noqa: F401
 
             logger.info(f"Starting file watcher for {len(self.directories)} directories")
             self._watching = True

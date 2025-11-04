@@ -3,6 +3,7 @@ Unit tests for nextmcp.core module
 """
 
 import pytest
+
 from nextmcp.core import NextMCP
 
 
@@ -48,6 +49,7 @@ def test_global_middleware():
         def wrapper(*args, **kwargs):
             result = fn(*args, **kwargs)
             return result + 1
+
         return wrapper
 
     app.add_middleware(add_one_middleware)
@@ -69,6 +71,7 @@ def test_multiple_middleware_stacking():
         def wrapper(*args, **kwargs):
             result = fn(*args, **kwargs)
             return result * 2
+
         return wrapper
 
     # Second middleware: add 1
@@ -76,6 +79,7 @@ def test_multiple_middleware_stacking():
         def wrapper(*args, **kwargs):
             result = fn(*args, **kwargs)
             return result + 1
+
         return wrapper
 
     # Add middleware in order

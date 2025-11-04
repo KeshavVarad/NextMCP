@@ -8,17 +8,19 @@ This module tests:
 - Async middleware behavior
 """
 
-import pytest
 import asyncio
 import time
+
+import pytest
+
 from nextmcp import NextMCP
 from nextmcp.middleware import (
-    log_calls_async,
-    error_handler_async,
-    rate_limit_async,
     cache_results_async,
-    timeout_async,
+    error_handler_async,
+    log_calls_async,
+    rate_limit_async,
     require_auth_async,
+    timeout_async,
 )
 
 
@@ -272,7 +274,9 @@ class TestAsyncMiddlewareStacking:
                     result = await fn(*args, **kwargs)
                     execution_order.append(f"{name}_after")
                     return result
+
                 return wrapper
+
             return middleware
 
         app = NextMCP("test-app")

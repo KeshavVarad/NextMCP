@@ -3,7 +3,9 @@
 from nextmcp import resource, resource_template
 
 
-@resource(uri="blog://stats", description="Blog statistics and analytics", mime_type="application/json")
+@resource(
+    uri="blog://stats", description="Blog statistics and analytics", mime_type="application/json"
+)
 def blog_stats() -> dict:
     """Provide blog statistics."""
     return {

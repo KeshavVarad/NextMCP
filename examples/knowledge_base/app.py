@@ -41,7 +41,11 @@ KNOWLEDGE_BASE = {
     },
 }
 
-STATS = {"total_searches": 0, "total_articles": len(KNOWLEDGE_BASE), "last_updated": datetime.now().isoformat()}
+STATS = {
+    "total_searches": 0,
+    "total_articles": len(KNOWLEDGE_BASE),
+    "last_updated": datetime.now().isoformat(),
+}
 
 
 # ============================================================================
@@ -126,7 +130,9 @@ def list_categories() -> list[str]:
 
 
 @app.prompt(description="Generate a research query", tags=["research", "search"])
-@argument("topic", description="Research topic", suggestions=["Python", "MCP", "FastMCP", "NextMCP"])
+@argument(
+    "topic", description="Research topic", suggestions=["Python", "MCP", "FastMCP", "NextMCP"]
+)
 @argument("depth", description="Research depth", suggestions=["basic", "detailed", "comprehensive"])
 def research_prompt(topic: str, depth: str = "basic") -> str:
     """Generate a prompt for researching a topic in the knowledge base."""

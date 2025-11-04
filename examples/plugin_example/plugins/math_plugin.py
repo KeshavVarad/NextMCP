@@ -61,6 +61,6 @@ class MathPlugin(Plugin):
             Returns:
                 base^exponent
             """
-            return base ** exponent
+            return base**exponent
 
         print(f"✓ {self.name} loaded: Added 3 math tools")

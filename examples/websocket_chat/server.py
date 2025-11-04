@@ -19,8 +19,7 @@ setup_logging(level="INFO")
 
 # Create the MCP application
 app = NextMCP(
-    name="websocket-chat-server",
-    description="A real-time chat server using WebSocket transport"
+    name="websocket-chat-server", description="A real-time chat server using WebSocket transport"
 )
 
 # Add global async middleware
@@ -31,10 +30,7 @@ app.add_middleware(error_handler_async)
 chat_history: List[dict] = []
 
 
-@app.tool(
-    name="send_message",
-    description="Send a chat message"
-)
+@app.tool(name="send_message", description="Send a chat message")
 async def send_message(username: str, message: str) -> dict:
     """
     Send a chat message.
@@ -48,26 +44,16 @@ async def send_message(username: str, message: str) -> dict:
     """
     timestamp = datetime.now(timezone.utc).isoformat()
 
-    chat_message = {
-        "username": username,
-        "message": message,
-        "timestamp": timestamp
-    }
+    chat_message = {"username": username, "message": message, "timestamp": timestamp}
 
     chat_history.append(chat_message)
 
     print(f"[{timestamp}] {username}: {message}")
 
-    return {
-        "status": "sent",
-        "message": chat_message
-    }
+    return {"status": "sent", "message": chat_message}
 
 
-@app.tool(
-    name="get_messages",
-    description="Get recent chat messages"
-)
+@app.tool(name="get_messages", description="Get recent chat messages")
 async def get_messages(limit: int = 10) -> dict:
     """
     Get recent chat messages.
@@ -80,16 +66,10 @@ async def get_messages(limit: int = 10) -> dict:
     """
     recent_messages = chat_history[-limit:] if limit > 0 else chat_history
 
-    return {
-        "messages": recent_messages,
-        "total": len(chat_history)
-    }
+    return {"messages": recent_messages, "total": len(chat_history)}
 
 
-@app.tool(
-    name="get_stats",
-    description="Get chat statistics"
-)
+@app.tool(name="get_stats", description="Get chat statistics")
 async def get_stats() -> dict:
     """
     Get chat server statistics.
@@ -102,14 +82,11 @@ async def get_stats() -> dict:
     return {
         "total_messages": len(chat_history),
         "unique_users": len(unique_users),
-        "users": list(unique_users)
+        "users": list(unique_users),
     }
 
 
-@app.tool(
-    name="clear_history",
-    description="Clear chat history (admin only)"
-)
+@app.tool(name="clear_history", description="Clear chat history (admin only)")
 async def clear_history() -> dict:
     """
     Clear all chat history.
@@ -121,16 +98,10 @@ async def clear_history() -> dict:
     message_count = len(chat_history)
     chat_history = []
 
-    return {
-        "status": "cleared",
-        "messages_deleted": message_count
-    }
+    return {"status": "cleared", "messages_deleted": message_count}
 
 
-@app.tool(
-    name="echo",
-    description="Echo a message back (for testing)"
-)
+@app.tool(name="echo", description="Echo a message back (for testing)")
 async def echo(message: str) -> dict:
     """
     Echo a message back.
@@ -143,10 +114,7 @@ async def echo(message: str) -> dict:
     """
     await asyncio.sleep(0.1)  # Simulate processing
 
-    return {
-        "echoed": message,
-        "timestamp": datetime.now(timezone.utc).isoformat()
-    }
+    return {"echoed": message, "timestamp": datetime.now(timezone.utc).isoformat()}
 
 
 # Run the WebSocket server

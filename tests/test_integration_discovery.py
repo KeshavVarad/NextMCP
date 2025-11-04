@@ -60,13 +60,15 @@ class TestFromConfigIntegration:
             tools_dir.mkdir()
 
             # Create a simple tool (don't use "test_" prefix - those are skipped!)
-            (tools_dir / "my_tool.py").write_text("""
+            (tools_dir / "my_tool.py").write_text(
+                """
 from nextmcp import tool
 
 @tool()
 def test_function() -> str:
     return "test"
-""")
+"""
+            )
 
             # Load without config file (should work with defaults)
             app = NextMCP.from_config(base_path=str(base_path))
@@ -98,13 +100,15 @@ discovery:
             (base_path / "my_resources").mkdir()
 
             # Add tools in custom directory
-            (base_path / "my_tools" / "custom.py").write_text("""
+            (base_path / "my_tools" / "custom.py").write_text(
+                """
 from nextmcp import tool
 
 @tool()
 def custom_tool() -> str:
     return "custom"
-""")
+"""
+            )
 
             # Load with custom config
             app = NextMCP.from_config(base_path=str(base_path))
@@ -127,13 +131,15 @@ auto_discover: false
             # Create tools directory
             tools_dir = base_path / "tools"
             tools_dir.mkdir()
-            (tools_dir / "tool.py").write_text("""
+            (tools_dir / "tool.py").write_text(
+                """
 from nextmcp import tool
 
 @tool()
 def should_not_be_discovered() -> str:
     return "test"
-""")
+"""
+            )
 
             # Load with auto_discover disabled
             app = NextMCP.from_config(base_path=str(base_path))
@@ -152,31 +158,37 @@ def should_not_be_discovered() -> str:
             (base_path / "resources").mkdir()
 
             # Create tool
-            (base_path / "tools" / "t.py").write_text("""
+            (base_path / "tools" / "t.py").write_text(
+                """
 from nextmcp import tool
 
 @tool()
 def my_tool() -> str:
     return "tool"
-""")
+"""
+            )
 
             # Create prompt
-            (base_path / "prompts" / "p.py").write_text("""
+            (base_path / "prompts" / "p.py").write_text(
+                """
 from nextmcp import prompt
 
 @prompt()
 def my_prompt(param: str) -> str:
     return f"prompt: {param}"
-""")
+"""
+            )
 
             # Create resource
-            (base_path / "resources" / "r.py").write_text("""
+            (base_path / "resources" / "r.py").write_text(
+                """
 from nextmcp import resource
 
 @resource("test://resource")
 def my_resource() -> dict:
     return {"data": "resource"}
-""")
+"""
+            )
 
             app = NextMCP.from_config(base_path=str(base_path))
 
@@ -193,13 +205,15 @@ def my_resource() -> dict:
             nested_dir = base_path / "tools" / "database" / "queries"
             nested_dir.mkdir(parents=True)
 
-            (nested_dir / "select.py").write_text("""
+            (nested_dir / "select.py").write_text(
+                """
 from nextmcp import tool
 
 @tool()
 def select_query(table: str) -> str:
     return f"SELECT * FROM {table}"
-""")
+"""
+            )
 
             app = NextMCP.from_config(base_path=str(base_path))
 
@@ -219,9 +233,9 @@ def test_blog_example_can_be_imported():
 
     try:
         # These imports should not raise errors
-        from tools import posts
         from prompts import workflows
         from resources import blog_resources
+        from tools import posts
 
         # Verify functions exist
         assert hasattr(posts, "create_post")

@@ -2,24 +2,26 @@
 Tests for the NextMCP metrics system.
 """
 
-import pytest
 import time
+
+import pytest
+
 from nextmcp import NextMCP
 from nextmcp.metrics import (
     Counter,
     Gauge,
     Histogram,
-    Summary,
     MetricsCollector,
-    MetricsRegistry,
-    get_registry,
     MetricsConfig,
+    MetricsRegistry,
+    Summary,
+    get_registry,
     metrics_middleware,
 )
-from nextmcp.metrics.exporters import PrometheusExporter, JSONExporter
-
+from nextmcp.metrics.exporters import JSONExporter, PrometheusExporter
 
 # Test Metric Types
+
 
 class TestCounter:
     """Test Counter metric type."""
@@ -151,6 +153,7 @@ class TestSummary:
 
 # Test Registry
 
+
 class TestMetricsRegistry:
     """Test MetricsRegistry."""
 
@@ -244,6 +247,7 @@ class TestMetricsRegistry:
 
 # Test Collector
 
+
 class TestMetricsCollector:
     """Test MetricsCollector."""
 
@@ -327,6 +331,7 @@ class TestMetricsCollector:
 
 # Test Middleware
 
+
 class TestMetricsMiddleware:
     """Test metrics middleware."""
 
@@ -369,7 +374,9 @@ class TestMetricsMiddleware:
 
         # Check that completed metric shows success
         metrics = registry.list_metrics()
-        completed_metrics = [m for m in metrics if "completed" in m.name and "status" in str(m.labels)]
+        completed_metrics = [
+            m for m in metrics if "completed" in m.name and "status" in str(m.labels)
+        ]
 
         # Should have at least one completed metric
         assert len(completed_metrics) > 0
@@ -401,7 +408,9 @@ class TestMetricsMiddleware:
         assert len(error_metrics) > 0
 
         # Check that completed metric shows error status
-        completed_metrics = [m for m in metrics if "completed" in m.name and "status" in str(m.labels)]
+        completed_metrics = [
+            m for m in metrics if "completed" in m.name and "status" in str(m.labels)
+        ]
         error_completed = [m for m in completed_metrics if m.labels.get("status") == "error"]
         assert len(error_completed) > 0
 
@@ -449,6 +458,7 @@ class TestMetricsMiddleware:
 
 
 # Test Exporters
+
 
 class TestPrometheusExporter:
     """Test Prometheus exporter."""
@@ -555,6 +565,7 @@ class TestJSONExporter:
 
 
 # Test Integration
+
 
 class TestNextMCPIntegration:
     """Test metrics integration with NextMCP."""

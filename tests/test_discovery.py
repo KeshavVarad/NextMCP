@@ -40,7 +40,8 @@ class TestAutoDiscovery:
 
             # Create a tool module
             tool_file = tools_dir / "weather.py"
-            tool_file.write_text("""
+            tool_file.write_text(
+                """
 from nextmcp import tool
 
 @tool()
@@ -50,7 +51,8 @@ def get_weather(city: str) -> dict:
 @tool(name="forecast")
 def get_forecast(city: str) -> list:
     return [{"day": 1, "temp": 70}]
-""")
+"""
+            )
 
             discovery = AutoDiscovery(base_path=tmpdir)
             tools = discovery.discover_tools()
@@ -69,7 +71,8 @@ def get_forecast(city: str) -> list:
 
             # Create a prompt module
             prompt_file = prompts_dir / "vacation.py"
-            prompt_file.write_text("""
+            prompt_file.write_text(
+                """
 from nextmcp import prompt
 
 @prompt()
@@ -79,7 +82,8 @@ def vacation_planner(destination: str) -> str:
 @prompt(name="budget_trip")
 def budget_planner(dest: str, budget: int) -> str:
     return f"Budget trip to {dest}"
-""")
+"""
+            )
 
             discovery = AutoDiscovery(base_path=tmpdir)
             prompts = discovery.discover_prompts()
@@ -98,7 +102,8 @@ def budget_planner(dest: str, budget: int) -> str:
 
             # Create a resource module
             resource_file = resources_dir / "files.py"
-            resource_file.write_text("""
+            resource_file.write_text(
+                """
 from nextmcp import resource, resource_template
 
 @resource("file:///logs/app.log")
@@ -108,7 +113,8 @@ def app_logs() -> str:
 @resource_template("file:///docs/{category}/{filename}")
 def documentation(category: str, filename: str) -> str:
     return f"doc: {category}/{filename}"
-""")
+"""
+            )
 
             discovery = AutoDiscovery(base_path=tmpdir)
             resources = discovery.discover_resources()
@@ -130,29 +136,35 @@ def documentation(category: str, filename: str) -> str:
             (base_path / "resources").mkdir()
 
             # Create files
-            (base_path / "tools" / "weather.py").write_text("""
+            (base_path / "tools" / "weather.py").write_text(
+                """
 from nextmcp import tool
 
 @tool()
 def get_weather(city: str) -> dict:
     return {"temp": 72}
-""")
+"""
+            )
 
-            (base_path / "prompts" / "vacation.py").write_text("""
+            (base_path / "prompts" / "vacation.py").write_text(
+                """
 from nextmcp import prompt
 
 @prompt()
 def plan_vacation(dest: str) -> str:
     return f"Plan {dest}"
-""")
+"""
+            )
 
-            (base_path / "resources" / "files.py").write_text("""
+            (base_path / "resources" / "files.py").write_text(
+                """
 from nextmcp import resource
 
 @resource("file:///config.json")
 def config() -> dict:
     return {"key": "value"}
-""")
+"""
+            )
 
             discovery = AutoDiscovery(base_path=tmpdir)
             results = discovery.discover_all()
@@ -174,13 +186,15 @@ def config() -> dict:
 
             # Create nested tool
             tool_file = nested_dir / "query.py"
-            tool_file.write_text("""
+            tool_file.write_text(
+                """
 from nextmcp import tool
 
 @tool()
 def execute_query(sql: str) -> list:
     return []
-""")
+"""
+            )
 
             discovery = AutoDiscovery(base_path=tmpdir)
             tools = discovery.discover_tools()
@@ -197,13 +211,15 @@ def execute_query(sql: str) -> list:
 
             # Create __init__.py (should be skipped)
             init_file = tools_dir / "__init__.py"
-            init_file.write_text("""
+            init_file.write_text(
+                """
 from nextmcp import tool
 
 @tool()
 def should_be_skipped() -> str:
     return "skipped"
-""")
+"""
+            )
 
             discovery = AutoDiscovery(base_path=tmpdir)
             tools = discovery.discover_tools()
@@ -220,13 +236,15 @@ def should_be_skipped() -> str:
 
             # Create test file (should be skipped)
             test_file = tools_dir / "test_weather.py"
-            test_file.write_text("""
+            test_file.write_text(
+                """
 from nextmcp import tool
 
 @tool()
 def test_tool() -> str:
     return "test"
-""")
+"""
+            )
 
             discovery = AutoDiscovery(base_path=tmpdir)
             tools = discovery.discover_tools()
@@ -243,13 +261,15 @@ def test_tool() -> str:
 
             # Create file with syntax error
             bad_file = tools_dir / "bad.py"
-            bad_file.write_text("""
+            bad_file.write_text(
+                """
 from nextmcp import tool
 
 @tool()
 def broken_tool(
     # Missing closing parenthesis
-""")
+"""
+            )
 
             discovery = AutoDiscovery(base_path=tmpdir)
             # Should not raise exception
@@ -264,13 +284,15 @@ def broken_tool(
             custom_dir.mkdir()
 
             tool_file = custom_dir / "weather.py"
-            tool_file.write_text("""
+            tool_file.write_text(
+                """
 from nextmcp import tool
 
 @tool()
 def get_weather(city: str) -> dict:
     return {"temp": 72}
-""")
+"""
+            )
 
             discovery = AutoDiscovery(base_path=tmpdir)
             tools = discovery.discover_tools(directory="my_tools")
@@ -367,13 +389,15 @@ async def test_discover_async_functions():
         tools_dir.mkdir()
 
         tool_file = tools_dir / "async_tools.py"
-        tool_file.write_text("""
+        tool_file.write_text(
+            """
 from nextmcp import tool
 
 @tool()
 async def async_tool(param: str) -> str:
     return f"async: {param}"
-""")
+"""
+        )
 
         discovery = AutoDiscovery(base_path=tmpdir)
         tools = discovery.discover_tools()
@@ -390,15 +414,18 @@ def test_discovery_multiple_files_in_directory():
         tools_dir.mkdir()
 
         # Create multiple tool files
-        (tools_dir / "weather.py").write_text("""
+        (tools_dir / "weather.py").write_text(
+            """
 from nextmcp import tool
 
 @tool()
 def get_weather(city: str) -> dict:
     return {"temp": 72}
-""")
+"""
+        )
 
-        (tools_dir / "search.py").write_text("""
+        (tools_dir / "search.py").write_text(
+            """
 from nextmcp import tool
 
 @tool()
@@ -408,7 +435,8 @@ def search_web(query: str) -> list:
 @tool()
 def search_images(query: str) -> list:
     return []
-""")
+"""
+        )
 
         discovery = AutoDiscovery(base_path=tmpdir)
         tools = discovery.discover_tools()
