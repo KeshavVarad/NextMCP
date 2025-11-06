@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/keshavvarad-nextmcp-badge.png)](https://mseep.ai/app/keshavvarad-nextmcp)
+
 # NextMCP
 
 [![Tests](https://github.com/KeshavVarad/NextMCP/workflows/Tests/badge.svg)](https://github.com/KeshavVarad/NextMCP/actions)
