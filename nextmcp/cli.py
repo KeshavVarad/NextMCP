@@ -516,6 +516,221 @@ if app:
                 print(f"Error: {e}")
             raise typer.Exit(code=1) from e
 
+    @app.command()
+    def validate(
+        manifest_file: str = typer.Argument(
+            "manifest.json", help="Path to manifest.json file to validate"
+        ),
+        app_file: str | None = typer.Option(
+            None, "--app", "-a", help="Generate manifest from app.py before validating"
+        ),
+        fail_on: str = typer.Option(
+            "critical",
+            "--fail-on",
+            help="Fail if issues at this level or above (critical, high, medium, low)",
+        ),
+        json_output: bool = typer.Option(False, "--json", help="Output results as JSON"),
+    ):
+        """
+        Validate a manifest.json file for security issues.
+
+        ⚠️ SECURITY WARNING:
+        This validator performs static analysis of manifest files to catch
+        obvious security issues. It CANNOT:
+        - Detect malicious code in server implementation
+        - Verify authentication/authorization is properly implemented
+        - Detect runtime vulnerabilities or business logic flaws
+        - Prevent sophisticated attacks
+
+        Use this as ONE LAYER in a defense-in-depth security strategy.
+        Always combine with: code review, penetration testing, and runtime monitoring.
+
+        Examples:
+            mcp validate manifest.json
+            mcp validate manifest.json --fail-on high
+            mcp validate --app app.py
+            mcp validate manifest.json --json
+        """
+        try:
+            from nextmcp.security import ManifestValidator, RiskLevel
+
+            # Generate manifest from app if requested
+            if app_file:
+                from nextmcp.manifest import ManifestGenerator
+
+                app_path = Path(app_file)
+                if not app_path.exists():
+                    if console:
+                        console.print(f"[red]Error:[/red] File not found: {app_file}")
+                    else:
+                        print(f"Error: File not found: {app_file}")
+                    raise typer.Exit(code=1)
+
+                # Load and generate manifest
+                with open(app_path) as f:
+                    code = f.read()
+
+                namespace = {}
+                exec(code, namespace)
+
+                app_instance = None
+                for value in namespace.values():
+                    if hasattr(value, "_tools"):
+                        app_instance = value
+                        break
+
+                if not app_instance:
+                    if console:
+                        console.print(
+                            "[yellow]Warning:[/yellow] No NextMCP instance found in app file"
+                        )
+                    else:
+                        print("Warning: No NextMCP instance found")
+                    raise typer.Exit(code=1)
+
+                if console:
+                    console.print(f"[blue]Generating manifest from {app_file}...[/blue]")
+
+                config = getattr(app_instance, "_config", None)
+                generator = ManifestGenerator(app_instance, config)
+                manifest_data = generator.generate()
+
+                # Save to temp file or use in memory
+                manifest_file = "manifest.json"
+                import json
+
+                with open(manifest_file, "w") as f:
+                    json.dump(manifest_data, f, indent=2)
+
+                if console:
+                    console.print(f"[green]✓[/green] Manifest generated: {manifest_file}\n")
+
+            # Validate manifest
+            validator = ManifestValidator()
+
+            if console:
+                console.print(f"[blue]Validating {manifest_file}...[/blue]\n")
+
+            result = validator.validate_file(manifest_file)
+            assessment = validator.assess_risk(manifest_file)
+
+            # JSON output mode
+            if json_output:
+                import json
+
+                output = {
+                    "validation": result.to_dict(),
+                    "risk_assessment": assessment.to_dict(),
+                }
+                print(json.dumps(output, indent=2))
+                return
+
+            # Pretty console output
+            if console:
+                # Validation results
+                if result.valid:
+                    console.print("[green]✓[/green] Manifest structure is valid\n")
+                else:
+                    console.print("[red]✗[/red] Manifest structure is invalid\n")
+                    for error in result.errors:
+                        console.print(f"  [red]✗[/red] {error}")
+                    console.print()
+
+                if result.warnings:
+                    console.print("[yellow]Warnings:[/yellow]")
+                    for warning in result.warnings:
+                        console.print(f"  [yellow]⚠[/yellow] {warning}")
+                    console.print()
+
+                # Risk assessment
+                risk_color = {
+                    "critical": "red",
+                    "high": "red",
+                    "medium": "yellow",
+                    "low": "blue",
+                    "info": "white",
+                }
+
+                console.print("[bold]Security Risk Assessment[/bold]")
+                console.print(
+                    f"Overall Risk: [{risk_color[assessment.overall_risk.value]}]{assessment.overall_risk.value.upper()}[/{risk_color[assessment.overall_risk.value]}]"
+                )
+                console.print(f"Risk Score: {assessment.risk_score}/100\n")
+
+                # Summary
+                console.print("[bold]Issues Summary:[/bold]")
+                console.print(f"  Critical: {assessment.summary['critical']}")
+                console.print(f"  High:     {assessment.summary['high']}")
+                console.print(f"  Medium:   {assessment.summary['medium']}")
+                console.print(f"  Low:      {assessment.summary['low']}")
+                console.print(f"  Info:     {assessment.summary['info']}")
+                console.print()
+
+                # Detailed issues
+                if assessment.issues:
+                    console.print("[bold]Detailed Issues:[/bold]\n")
+                    for i, issue in enumerate(assessment.issues, 1):
+                        level_color = risk_color[issue.level.value]
+                        console.print(
+                            f"[{level_color}]{i}. [{issue.level.value.upper()}] {issue.title}[/{level_color}]"
+                        )
+                        console.print(f"   Location: {issue.location}")
+                        console.print(f"   {issue.description}")
+                        console.print(f"   💡 {issue.recommendation}")
+                        if issue.cwe_id:
+                            console.print(f"   CWE: {issue.cwe_id}")
+                        console.print()
+
+                # Security warning
+                console.print(
+                    "[yellow]⚠️  SECURITY WARNING:[/yellow] This validation is NOT sufficient for security."
+                )
+                console.print("   Passing validation does NOT guarantee your server is secure.")
+                console.print(
+                    "   You MUST also: review code, test for vulnerabilities, monitor runtime behavior.\n"
+                )
+
+            else:
+                # Plain text output
+                if result.valid:
+                    print("✓ Manifest structure is valid\n")
+                else:
+                    print("✗ Manifest structure is invalid\n")
+                    for error in result.errors:
+                        print(f"  ✗ {error}")
+                    print()
+
+                print(f"Risk Level: {assessment.overall_risk.value.upper()}")
+                print(f"Risk Score: {assessment.risk_score}/100")
+                print(f"\nIssues: {len(assessment.issues)}")
+                for issue in assessment.issues:
+                    print(f"\n[{issue.level.value.upper()}] {issue.title}")
+                    print(f"  {issue.description}")
+                    print(f"  💡 {issue.recommendation}")
+
+            # Exit code based on risk level
+            fail_levels = {
+                "critical": [RiskLevel.CRITICAL],
+                "high": [RiskLevel.CRITICAL, RiskLevel.HIGH],
+                "medium": [RiskLevel.CRITICAL, RiskLevel.HIGH, RiskLevel.MEDIUM],
+                "low": [RiskLevel.CRITICAL, RiskLevel.HIGH, RiskLevel.MEDIUM, RiskLevel.LOW],
+            }
+
+            if assessment.overall_risk in fail_levels.get(fail_on, [RiskLevel.CRITICAL]):
+                raise typer.Exit(code=1)
+
+        except typer.Exit:
+            raise
+        except Exception as e:
+            if console:
+                console.print(f"[red]Error:[/red] {e}")
+            else:
+                print(f"Error: {e}")
+            import traceback
+
+            traceback.print_exc()
+            raise typer.Exit(code=1) from e
+
 
 def main():
     """Entry point for the CLI."""

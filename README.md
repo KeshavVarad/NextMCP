@@ -1912,6 +1912,108 @@ mcp docs app.py --output docs.md
 mcp docs app.py --format json
 ```
 
+### Generate manifest.json
+
+Generate a manifest file describing your server's capabilities, tools, prompts, and resources:
+
+```bash
+# Print manifest to stdout
+mcp manifest app.py
+
+# Save to file
+mcp manifest app.py --output manifest.json
+mcp manifest app.py --save  # Shorthand for --output manifest.json
+
+# Validate manifest
+mcp manifest app.py --validate
+```
+
+The generated manifest includes:
+- Server metadata (name, version, description)
+- Capabilities declaration (tools, prompts, resources, logging, completions)
+- Complete tool listings with JSON Schema for parameters
+- Prompt templates with argument specifications
+- Resources and resource templates with URI patterns
+- Generation metadata (timestamp, auto-discovery info, middleware, deployment settings)
+
+You can also generate manifests programmatically:
+
+```python
+from nextmcp import NextMCP
+
+app = NextMCP.from_config()
+
+# Generate and save
+manifest = app.generate_manifest("manifest.json")
+
+# Or just generate without saving
+manifest = app.generate_manifest()
+```
+
+### Validate manifest security
+
+Validate a manifest for security issues using static analysis:
+
+```bash
+# Validate a manifest file
+mcp validate manifest.json
+
+# Generate and validate from app
+mcp validate --app app.py
+
+# Fail on different risk levels
+mcp validate manifest.json --fail-on high    # Blocks HIGH and CRITICAL
+mcp validate manifest.json --fail-on medium  # Blocks MEDIUM, HIGH, and CRITICAL
+
+# JSON output for CI/CD integration
+mcp validate manifest.json --json
+```
+
+#### ⚠️ **CRITICAL SECURITY WARNINGS**
+
+**Manifest validation is NOT sufficient for security!**
+
+The validator performs static analysis to catch obvious issues but **CANNOT**:
+- ❌ Detect malicious code in server implementation
+- ❌ Verify authentication/authorization is properly implemented
+- ❌ Detect runtime vulnerabilities or business logic flaws
+- ❌ Prevent sophisticated attacks from determined adversaries
+- ❌ Guarantee your server is secure even if validation passes
+
+**Manifests can be fabricated or broken:**
+- Attackers can create fake manifests that look safe but hide malicious operations
+- Manifest can claim strict validation that doesn't exist in code
+- Schema in manifest may not match actual server behavior
+- Tools can be hidden from manifest entirely
+
+**What the validator DOES check:**
+- ✅ Dangerous operation patterns (delete, execute, admin commands)
+- ✅ Missing input validation (unbounded strings, unconstrained objects)
+- ✅ Common injection risks (SQL, command, path traversal, SSRF)
+- ✅ Sensitive data exposure indicators
+- ✅ Large attack surface (many exposed tools)
+- ✅ Missing authentication indicators for dangerous operations
+
+**Use validation as ONE LAYER in defense-in-depth:**
+
+```
+Security Layer 1: Manifest Validation (this tool) ← Catches obvious issues
+Security Layer 2: Static Code Analysis (Bandit, Semgrep) ← Finds vulnerabilities in code
+Security Layer 3: Dependency Scanning (Snyk, Safety) ← Detects known CVEs
+Security Layer 4: Manual Code Review ← Human security review
+Security Layer 5: Penetration Testing ← Test for exploits
+Security Layer 6: Runtime Monitoring ← Detect anomalies in production
+```
+
+**Best practices:**
+1. **Never trust manifest alone** - Always review server code
+2. **Defense in depth** - Use multiple security layers
+3. **Principle of least privilege** - Only expose necessary operations
+4. **Assume breach** - Add audit logging, rate limiting, monitoring
+5. **Regular updates** - Re-validate on every change
+
+See `examples/security_validation/` for detailed examples of secure vs insecure servers.
+
 ### Show version
 
 ```bash
@@ -1923,6 +2025,7 @@ mcp version
 Check out the `examples/` directory for complete working examples:
 
 - **blog_server** - Convention-based project structure with auto-discovery (5 tools, 3 prompts, 4 resources)
+- **security_validation** - Manifest validation examples showing secure vs insecure servers
 - **auth_api_key** - API key authentication with role-based access control
 - **auth_jwt** - JWT token authentication with login endpoint and token generation
 - **auth_rbac** - Advanced RBAC with fine-grained permissions and wildcards
