@@ -1,0 +1,6 @@
+# CODEOWNERS file for NextMCP
+# This file defines code ownership for the repository
+# All pull requests require approval from the specified owners
+
+# Global owner - all files require approval from KeshavVarad
+* @KeshavVarad
