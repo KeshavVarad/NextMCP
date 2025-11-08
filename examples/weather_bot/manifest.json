@@ -1,0 +1,84 @@
+{
+  "mcpVersion": "2025-06-18",
+  "implementation": {
+    "name": "weather-bot",
+    "version": "1.0.0",
+    "title": "A simple weather information MCP server",
+    "description": "A simple weather information MCP server"
+  },
+  "capabilities": {
+    "tools": {
+      "listChanged": true
+    },
+    "logging": {}
+  },
+  "tools": [
+    {
+      "name": "get_weather",
+      "description": "Get current weather information for a city",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "city": {
+            "type": "string",
+            "description": "Parameter: city"
+          },
+          "units": {
+            "type": "string",
+            "description": "Parameter: units",
+            "default": "fahrenheit"
+          }
+        },
+        "required": [
+          "city"
+        ]
+      }
+    },
+    {
+      "name": "get_forecast",
+      "description": "Get weather forecast for the next few days",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "city": {
+            "type": "string",
+            "description": "Parameter: city"
+          },
+          "days": {
+            "type": "integer",
+            "description": "Parameter: days",
+            "default": 3
+          }
+        },
+        "required": [
+          "city"
+        ]
+      }
+    },
+    {
+      "name": "search_cities",
+      "description": "Search for cities by name or region",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Parameter: query"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Parameter: limit",
+            "default": 5
+          }
+        },
+        "required": [
+          "query"
+        ]
+      }
+    }
+  ],
+  "metadata": {
+    "generatedAt": "2025-11-07T23:25:44.687970+00:00",
+    "generatedBy": "nextmcp-manifest-generator"
+  }
+}
