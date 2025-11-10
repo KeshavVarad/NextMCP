@@ -793,4 +793,4 @@ class NextMCP:
 
         # Run the server
         logger.info(f"{self.name} is ready and listening for requests")
-        self._fastmcp_server.run()
+        self._fastmcp_server.run(host=host, port=port, **kwargs)
