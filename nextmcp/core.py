@@ -782,12 +782,14 @@ class NextMCP:
         # Register all resources with FastMCP
         for uri, resource_fn in self._resources.items():
             logger.debug(f"Registering resource with FastMCP: {uri}")
-            self._fastmcp_server.add_resource(uri, resource_fn)
+            # FastMCP API changed - use decorator syntax instead of add_resource
+            self._fastmcp_server.resource(uri)(resource_fn)
 
         # Register all resource templates with FastMCP
         for pattern, template_fn in self._resource_templates.items():
             logger.debug(f"Registering resource template with FastMCP: {pattern}")
-            self._fastmcp_server.add_template(pattern, template_fn)
+            # FastMCP API changed - use decorator syntax instead of add_template
+            self._fastmcp_server.resource(pattern)(template_fn)
 
         # Run the server
         logger.info(f"{self.name} is ready and listening for requests")
