@@ -3,6 +3,12 @@ Authentication and authorization for NextMCP.
 
 This module provides a comprehensive auth system inspired by next-auth,
 adapted for the Model Context Protocol (MCP).
+
+Includes support for:
+- API Key, JWT, and Session authentication
+- OAuth 2.0 with PKCE (GitHub, Google, and custom providers)
+- Role-Based Access Control (RBAC)
+- Fine-grained permissions
 """
 
 from nextmcp.auth.core import (
@@ -20,6 +26,8 @@ from nextmcp.auth.middleware import (
     requires_role,
     requires_role_async,
 )
+from nextmcp.auth.oauth import OAuthConfig, OAuthProvider, PKCEChallenge
+from nextmcp.auth.oauth_providers import GitHubOAuthProvider, GoogleOAuthProvider
 from nextmcp.auth.providers import (
     APIKeyProvider,
     JWTProvider,
@@ -45,6 +53,12 @@ __all__ = [
     "APIKeyProvider",
     "JWTProvider",
     "SessionProvider",
+    # OAuth
+    "OAuthProvider",
+    "OAuthConfig",
+    "PKCEChallenge",
+    "GitHubOAuthProvider",
+    "GoogleOAuthProvider",
     # RBAC
     "RBAC",
     "PermissionDeniedError",

@@ -52,8 +52,11 @@ schema = [
 websocket = [
     "websockets>=12.0",
 ]
+oauth = [
+    "aiohttp>=3.8.0",
+]
 all = [
-    "nextmcp[dev,cli,config,schema,websocket]",
+    "nextmcp[dev,cli,config,schema,websocket,oauth]",
 ]
 
 [project.scripts]
