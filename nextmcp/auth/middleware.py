@@ -353,5 +353,60 @@ def requires_permission_async(*required_permissions: str) -> Callable:
     return decorator
 
 
+def requires_scope_async(*required_scopes: str) -> Callable:
+    """
+    Async middleware decorator that requires specific OAuth scopes.
+
+    Must be used with @requires_auth_async.
+    The auth context from the auth middleware is checked for required scopes.
+
+    Args:
+        *required_scopes: Scope names required (user must have at least one)
+
+    Example:
+        @app.tool()
+        @requires_auth_async(provider=github_oauth)
+        @requires_scope_async("repo:read", "repo:write")
+        async def access_repo(auth: AuthContext) -> dict:
+            return {"status": "authorized"}
+    """
+
+    def decorator(fn: Callable) -> Callable:
+        @functools.wraps(fn)
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
+            # First argument should be AuthContext (from requires_auth_async)
+            if not args or not isinstance(args[0], AuthContext):
+                raise AuthenticationError(
+                    "requires_scope_async must be used with requires_auth_async"
+                )
+
+            auth_context = args[0]
+
+            # Check if user has any of the required scopes
+            has_scope = any(auth_context.has_scope(scope) for scope in required_scopes)
+
+            if not has_scope:
+                scopes_str = ", ".join(required_scopes)
+                raise PermissionDeniedError(
+                    f"One of the following scopes required: {scopes_str}",
+                    required=scopes_str,
+                    user_id=auth_context.user_id,
+                )
+
+            import asyncio
+
+            if asyncio.iscoroutinefunction(fn):
+                return await fn(*args, **kwargs)
+            else:
+                return fn(*args, **kwargs)
+
+        # Mark function as requiring scopes
+        wrapper._requires_scopes = required_scopes  # type: ignore
+
+        return wrapper
+
+    return decorator
+
+
 # Need to add this import
 import asyncio  # noqa: E402

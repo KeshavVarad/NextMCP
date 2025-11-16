@@ -25,6 +25,7 @@ from nextmcp.auth.middleware import (
     requires_permission_async,
     requires_role,
     requires_role_async,
+    requires_scope_async,
 )
 from nextmcp.auth.oauth import OAuthConfig, OAuthProvider, PKCEChallenge
 from nextmcp.auth.oauth_providers import GitHubOAuthProvider, GoogleOAuthProvider
@@ -49,6 +50,7 @@ __all__ = [
     "requires_permission_async",
     "requires_role",
     "requires_role_async",
+    "requires_scope_async",
     # Providers
     "APIKeyProvider",
     "JWTProvider",

@@ -98,7 +98,7 @@ class AuthContext:
     Represents the authentication context for a request.
 
     This contains information about the authenticated user, their credentials,
-    roles, and permissions. It's passed to tools that require authentication.
+    roles, permissions, and OAuth scopes. It's passed to tools that require authentication.
     """
 
     authenticated: bool = False
@@ -106,6 +106,7 @@ class AuthContext:
     username: str | None = None
     roles: set[Role] = field(default_factory=set)
     permissions: set[Permission] = field(default_factory=set)
+    scopes: set[str] = field(default_factory=set)  # OAuth scopes
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def has_role(self, role_name: str) -> bool:
@@ -125,6 +126,18 @@ class AuthContext:
         # Check role permissions
         return any(r.has_permission(permission_name) for r in self.roles)
 
+    def has_scope(self, scope_name: str) -> bool:
+        """
+        Check if user has a specific OAuth scope.
+
+        Args:
+            scope_name: Scope name to check
+
+        Returns:
+            True if user has the scope, False otherwise
+        """
+        return scope_name in self.scopes
+
     def add_role(self, role: Role | str) -> None:
         """Add a role to this auth context."""
         if isinstance(role, str):
@@ -136,6 +149,15 @@ class AuthContext:
         if isinstance(permission, str):
             permission = Permission(permission)
         self.permissions.add(permission)
+
+    def add_scope(self, scope: str) -> None:
+        """
+        Add an OAuth scope to this auth context.
+
+        Args:
+            scope: Scope string to add
+        """
+        self.scopes.add(scope)
 
 
 @dataclass
