@@ -87,6 +87,7 @@ addopts = [
 ]
 markers = [
     "asyncio: marks tests as async (using pytest-asyncio)",
+    "integration: marks tests as integration tests (require real OAuth credentials)",
 ]
 
 [tool.black]
