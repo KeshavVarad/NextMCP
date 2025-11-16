@@ -18,6 +18,7 @@ from nextmcp.auth.core import (
     Permission,
     Role,
 )
+from nextmcp.auth.manifest import PermissionManifest, ScopeDefinition, ToolPermission
 from nextmcp.auth.middleware import (
     requires_auth,
     requires_auth_async,
@@ -43,6 +44,10 @@ __all__ = [
     "AuthResult",
     "Permission",
     "Role",
+    # Manifest
+    "PermissionManifest",
+    "ScopeDefinition",
+    "ToolPermission",
     # Middleware
     "requires_auth",
     "requires_auth_async",
