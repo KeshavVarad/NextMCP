@@ -18,10 +18,16 @@ from nextmcp.auth.core import (
     Permission,
     Role,
 )
+from nextmcp.auth.errors import (
+    ManifestViolationError,
+    OAuthRequiredError,
+    ScopeInsufficientError,
+)
 from nextmcp.auth.manifest import PermissionManifest, ScopeDefinition, ToolPermission
 from nextmcp.auth.middleware import (
     requires_auth,
     requires_auth_async,
+    requires_manifest_async,
     requires_permission,
     requires_permission_async,
     requires_role,
@@ -44,6 +50,11 @@ __all__ = [
     "AuthResult",
     "Permission",
     "Role",
+    # Errors
+    "OAuthRequiredError",
+    "ScopeInsufficientError",
+    "ManifestViolationError",
+    "PermissionDeniedError",
     # Manifest
     "PermissionManifest",
     "ScopeDefinition",
@@ -51,6 +62,7 @@ __all__ = [
     # Middleware
     "requires_auth",
     "requires_auth_async",
+    "requires_manifest_async",
     "requires_permission",
     "requires_permission_async",
     "requires_role",
@@ -68,5 +80,4 @@ __all__ = [
     "GoogleOAuthProvider",
     # RBAC
     "RBAC",
-    "PermissionDeniedError",
 ]

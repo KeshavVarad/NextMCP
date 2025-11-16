@@ -408,5 +408,84 @@ def requires_scope_async(*required_scopes: str) -> Callable:
     return decorator
 
 
+def requires_manifest_async(
+    manifest: "PermissionManifest | None" = None,
+    tool_name: str | None = None,
+) -> Callable:
+    """
+    Async middleware decorator that enforces PermissionManifest access control.
+
+    Must be used with @requires_auth_async.
+    The auth context is checked against the manifest's tool requirements.
+
+    Args:
+        manifest: PermissionManifest to enforce
+        tool_name: Name of tool to check (if None, uses function name)
+
+    Example:
+        manifest = PermissionManifest()
+        manifest.define_tool_permission("admin_tool", roles=["admin"])
+
+        @app.tool()
+        @requires_auth_async(provider=api_key_provider)
+        @requires_manifest_async(manifest=manifest, tool_name="admin_tool")
+        async def admin_tool(auth: AuthContext) -> str:
+            return "Admin action performed"
+    """
+    from nextmcp.auth.errors import ManifestViolationError
+    from nextmcp.auth.manifest import PermissionManifest
+
+    def decorator(fn: Callable) -> Callable:
+        @functools.wraps(fn)
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
+            # First argument should be AuthContext (from requires_auth_async)
+            if not args or not isinstance(args[0], AuthContext):
+                raise AuthenticationError(
+                    "requires_manifest_async must be used with requires_auth_async"
+                )
+
+            auth_context = args[0]
+
+            if manifest is None:
+                raise AuthenticationError("No manifest configured for requires_manifest_async")
+
+            # Determine tool name (use parameter or function name)
+            actual_tool_name = tool_name if tool_name else fn.__name__
+
+            # Check manifest access
+            allowed, error_message = manifest.check_tool_access(actual_tool_name, auth_context)
+
+            if not allowed:
+                # Get tool definition for error details
+                tool_def = manifest.tools.get(actual_tool_name)
+
+                raise ManifestViolationError(
+                    message=error_message or "Access denied by manifest",
+                    tool_name=actual_tool_name,
+                    required_roles=tool_def.roles if tool_def else [],
+                    required_permissions=tool_def.permissions if tool_def else [],
+                    required_scopes=tool_def.scopes if tool_def else [],
+                    user_id=auth_context.user_id,
+                    auth_context=auth_context,
+                )
+
+            # Access allowed - execute function
+            import asyncio
+
+            if asyncio.iscoroutinefunction(fn):
+                return await fn(*args, **kwargs)
+            else:
+                return fn(*args, **kwargs)
+
+        # Mark function as requiring manifest
+        wrapper._requires_manifest = True  # type: ignore
+        wrapper._manifest = manifest  # type: ignore
+        wrapper._tool_name = tool_name  # type: ignore
+
+        return wrapper
+
+    return decorator
+
+
 # Need to add this import
 import asyncio  # noqa: E402
