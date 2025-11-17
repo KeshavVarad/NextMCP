@@ -8,7 +8,10 @@ authentication and authorization requirements.
 import functools
 import logging
 from collections.abc import Callable
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from nextmcp.auth.manifest import PermissionManifest
 
 from nextmcp.auth.core import AuthContext, AuthProvider
 from nextmcp.auth.rbac import PermissionDeniedError
@@ -347,6 +350,139 @@ def requires_permission_async(*required_permissions: str) -> Callable:
 
         # Mark function as requiring permissions
         wrapper._requires_permissions = required_permissions  # type: ignore
+
+        return wrapper
+
+    return decorator
+
+
+def requires_scope_async(*required_scopes: str) -> Callable:
+    """
+    Async middleware decorator that requires specific OAuth scopes.
+
+    Must be used with @requires_auth_async.
+    The auth context from the auth middleware is checked for required scopes.
+
+    Args:
+        *required_scopes: Scope names required (user must have at least one)
+
+    Example:
+        @app.tool()
+        @requires_auth_async(provider=github_oauth)
+        @requires_scope_async("repo:read", "repo:write")
+        async def access_repo(auth: AuthContext) -> dict:
+            return {"status": "authorized"}
+    """
+
+    def decorator(fn: Callable) -> Callable:
+        @functools.wraps(fn)
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
+            # First argument should be AuthContext (from requires_auth_async)
+            if not args or not isinstance(args[0], AuthContext):
+                raise AuthenticationError(
+                    "requires_scope_async must be used with requires_auth_async"
+                )
+
+            auth_context = args[0]
+
+            # Check if user has any of the required scopes
+            has_scope = any(auth_context.has_scope(scope) for scope in required_scopes)
+
+            if not has_scope:
+                scopes_str = ", ".join(required_scopes)
+                raise PermissionDeniedError(
+                    f"One of the following scopes required: {scopes_str}",
+                    required=scopes_str,
+                    user_id=auth_context.user_id,
+                )
+
+            import asyncio
+
+            if asyncio.iscoroutinefunction(fn):
+                return await fn(*args, **kwargs)
+            else:
+                return fn(*args, **kwargs)
+
+        # Mark function as requiring scopes
+        wrapper._requires_scopes = required_scopes  # type: ignore
+
+        return wrapper
+
+    return decorator
+
+
+def requires_manifest_async(
+    manifest: "PermissionManifest | None" = None,
+    tool_name: str | None = None,
+) -> Callable:
+    """
+    Async middleware decorator that enforces PermissionManifest access control.
+
+    Must be used with @requires_auth_async.
+    The auth context is checked against the manifest's tool requirements.
+
+    Args:
+        manifest: PermissionManifest to enforce
+        tool_name: Name of tool to check (if None, uses function name)
+
+    Example:
+        manifest = PermissionManifest()
+        manifest.define_tool_permission("admin_tool", roles=["admin"])
+
+        @app.tool()
+        @requires_auth_async(provider=api_key_provider)
+        @requires_manifest_async(manifest=manifest, tool_name="admin_tool")
+        async def admin_tool(auth: AuthContext) -> str:
+            return "Admin action performed"
+    """
+    from nextmcp.auth.errors import ManifestViolationError
+
+    def decorator(fn: Callable) -> Callable:
+        @functools.wraps(fn)
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
+            # First argument should be AuthContext (from requires_auth_async)
+            if not args or not isinstance(args[0], AuthContext):
+                raise AuthenticationError(
+                    "requires_manifest_async must be used with requires_auth_async"
+                )
+
+            auth_context = args[0]
+
+            if manifest is None:
+                raise AuthenticationError("No manifest configured for requires_manifest_async")
+
+            # Determine tool name (use parameter or function name)
+            actual_tool_name = tool_name if tool_name else fn.__name__
+
+            # Check manifest access
+            allowed, error_message = manifest.check_tool_access(actual_tool_name, auth_context)
+
+            if not allowed:
+                # Get tool definition for error details
+                tool_def = manifest.tools.get(actual_tool_name)
+
+                raise ManifestViolationError(
+                    message=error_message or "Access denied by manifest",
+                    tool_name=actual_tool_name,
+                    required_roles=tool_def.roles if tool_def else [],
+                    required_permissions=tool_def.permissions if tool_def else [],
+                    required_scopes=tool_def.scopes if tool_def else [],
+                    user_id=auth_context.user_id,
+                    auth_context=auth_context,
+                )
+
+            # Access allowed - execute function
+            import asyncio
+
+            if asyncio.iscoroutinefunction(fn):
+                return await fn(*args, **kwargs)
+            else:
+                return fn(*args, **kwargs)
+
+        # Mark function as requiring manifest
+        wrapper._requires_manifest = True  # type: ignore
+        wrapper._manifest = manifest  # type: ignore
+        wrapper._tool_name = tool_name  # type: ignore
 
         return wrapper
 
