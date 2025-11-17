@@ -239,9 +239,7 @@ class MemorySessionStore(SessionStore):
         """
         with self._lock:
             expired = [
-                user_id
-                for user_id, session in self._sessions.items()
-                if session.is_expired()
+                user_id for user_id, session in self._sessions.items() if session.is_expired()
             ]
             for user_id in expired:
                 del self._sessions[user_id]

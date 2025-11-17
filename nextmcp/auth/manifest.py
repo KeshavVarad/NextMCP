@@ -222,9 +222,7 @@ class PermissionManifest:
             "tools": {name: tool.to_dict() for name, tool in self.tools.items()},
         }
 
-    def check_tool_access(
-        self, tool_name: str, context: AuthContext
-    ) -> tuple[bool, str | None]:
+    def check_tool_access(self, tool_name: str, context: AuthContext) -> tuple[bool, str | None]:
         """
         Check if an auth context has access to a tool.
 
@@ -263,9 +261,7 @@ class PermissionManifest:
 
         # Check permissions (if specified)
         if tool.permissions:
-            has_required_permission = any(
-                context.has_permission(perm) for perm in tool.permissions
-            )
+            has_required_permission = any(context.has_permission(perm) for perm in tool.permissions)
             if not has_required_permission:
                 perms_str = ", ".join(tool.permissions)
                 return (False, f"One of the following permissions required: {perms_str}")

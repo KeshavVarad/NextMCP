@@ -296,7 +296,9 @@ class OAuthProvider(AuthProvider, ABC):
             # This maintains backward compatibility while enabling scope-specific features
             for scope in credentials.get("scopes", []):
                 context.add_scope(scope)  # Add as OAuth scope
-                context.add_permission(Permission(scope))  # Also add as permission for backward compat
+                context.add_permission(
+                    Permission(scope)
+                )  # Also add as permission for backward compat
 
             return AuthResult.success_result(context)
 
