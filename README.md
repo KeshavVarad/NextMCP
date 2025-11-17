@@ -25,7 +25,8 @@ NextMCP is a Python SDK built on top of FastMCP that provides a developer-friend
 - **Argument Completion** - Smart suggestions for prompt arguments and resource templates
 - **Resource Subscriptions** - Real-time notifications when resources change
 - **WebSocket Transport** - Real-time bidirectional communication for interactive applications
-- **Authentication & Authorization** - Built-in support for API keys, JWT, sessions, and RBAC
+- **Authentication & Authorization** - Built-in support for API keys, JWT, sessions, OAuth 2.0, and RBAC
+- **OAuth 2.0 Support** - Complete OAuth implementation with GitHub and Google providers, PKCE, session management
 - **Global & Primitive-specific Middleware** - Add logging, auth, rate limiting, caching, and more
 - **Rich CLI** - Scaffold projects, run servers, deploy, and generate docs with `mcp` commands
 - **Configuration Management** - Support for `.env`, YAML config files, and environment variables
@@ -55,6 +56,9 @@ pip install nextmcp[schema]
 
 # WebSocket transport
 pip install nextmcp[websocket]
+
+# OAuth authentication (included in base by default via aiohttp)
+pip install nextmcp[oauth]
 
 # Everything
 pip install nextmcp[all]
@@ -405,7 +409,7 @@ See `examples/blog_server/` for a complete convention-based project.
 
 ## Authentication & Authorization
 
-NextMCP v0.4.0 introduces a comprehensive authentication and authorization system inspired by next-auth, adapted for the Model Context Protocol.
+NextMCP provides a comprehensive authentication and authorization system with support for API keys, JWT tokens, sessions, OAuth 2.0, and fine-grained RBAC. The system is production-ready with extensive documentation and examples.
 
 ### Why Authentication for MCP?
 
@@ -413,7 +417,8 @@ MCP servers often need to:
 - **Protect sensitive tools** from unauthorized access
 - **Implement role-based access** (admin, user, viewer)
 - **Track who performed actions** for audit logs
-- **Integrate with existing auth systems** (API keys, JWT, OAuth)
+- **Integrate with existing auth systems** (API keys, JWT, OAuth 2.0)
+- **Authenticate users with external providers** (GitHub, Google, etc.)
 
 ### Quick Start
 
@@ -764,10 +769,238 @@ except PermissionDeniedError as e:
 7. **Use strong secrets**: Generate with `secrets.token_urlsafe(32)`
 8. **Implement rate limiting**: Prevent brute force attacks
 
+### OAuth 2.0 Authentication
+
+NextMCP includes a complete OAuth 2.0 implementation with PKCE support, ready-to-use providers for GitHub and Google, and a flexible session management system.
+
+#### OAuth Features
+
+- **OAuth 2.0 with PKCE**: Full Authorization Code Flow with PKCE for secure authentication
+- **Ready-to-use Providers**: GitHub and Google OAuth providers with sensible defaults
+- **Session Management**: Persistent token storage with memory and file-based backends
+- **Auth Metadata Protocol**: Servers can announce authentication requirements to MCP hosts
+- **Request Enforcement**: Runtime middleware validates tokens, scopes, and permissions
+- **Automatic Token Refresh**: Built-in token refresh handling
+- **Production-Ready**: Comprehensive testing and error handling
+
+#### Quick Start with Google OAuth
+
+```python
+from fastmcp import FastMCP
+from nextmcp.auth import GoogleOAuthProvider, create_auth_middleware
+from nextmcp.session import FileSessionStore
+from nextmcp.protocol import AuthRequirement, AuthMetadata, AuthFlowType
+
+mcp = FastMCP("My Secure Server")
+
+# Set up Google OAuth provider
+google = GoogleOAuthProvider(
+    client_id=os.getenv("GOOGLE_CLIENT_ID"),
+    client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
+    scopes=["openid", "email", "profile"]
+)
+
+# Create auth middleware with session storage
+auth_middleware = create_auth_middleware(
+    provider=google,
+    requirement=AuthRequirement.REQUIRED,
+    session_store=FileSessionStore("./sessions")
+)
+
+# Apply middleware to server
+mcp.use(auth_middleware)
+
+# Expose auth metadata so hosts know this server requires OAuth
+auth_metadata = AuthMetadata(
+    requirement=AuthRequirement.REQUIRED,
+    flow_type=AuthFlowType.OAUTH,
+    provider_name="google",
+    scopes=["openid", "email", "profile"]
+)
+mcp.set_auth_metadata(auth_metadata)
+
+# Tools now require authentication
+@mcp.tool()
+async def get_user_data(ctx: Context) -> str:
+    return f"Hello {ctx.auth.username}!"
+```
+
+#### GitHub OAuth
+
+```python
+from nextmcp.auth import GitHubOAuthProvider
+
+github = GitHubOAuthProvider(
+    client_id=os.getenv("GITHUB_CLIENT_ID"),
+    client_secret=os.getenv("GITHUB_CLIENT_SECRET"),
+    scopes=["user:email", "read:user"]
+)
+
+auth_middleware = create_auth_middleware(
+    provider=github,
+    requirement=AuthRequirement.REQUIRED,
+    session_store=FileSessionStore("./sessions")
+)
+
+mcp.use(auth_middleware)
+```
+
+#### Multi-Provider Support
+
+Use multiple OAuth providers in the same application:
+
+```python
+from nextmcp.auth import GitHubOAuthProvider, GoogleOAuthProvider
+
+# Set up both providers
+github = GitHubOAuthProvider(...)
+google = GoogleOAuthProvider(...)
+
+# Different tools can use different providers
+@mcp.tool()
+@requires_auth_async(provider=github)
+async def github_tool(ctx: Context) -> dict:
+    return {"provider": "github", "user": ctx.auth.username}
+
+@mcp.tool()
+@requires_auth_async(provider=google)
+async def google_tool(ctx: Context) -> dict:
+    return {"provider": "google", "user": ctx.auth.username}
+```
+
+#### Session Management
+
+Session stores persist authentication state and handle token refresh:
+
+```python
+from nextmcp.session import FileSessionStore, MemorySessionStore
+
+# File-based session storage (persists across restarts)
+file_store = FileSessionStore(
+    directory="./sessions",
+    auto_cleanup=True,
+    cleanup_interval=3600  # Clean up expired sessions every hour
+)
+
+# In-memory session storage (for development)
+memory_store = MemorySessionStore()
+
+# Sessions automatically handle token refresh
+auth_middleware = create_auth_middleware(
+    provider=google,
+    session_store=file_store,
+    auto_refresh=True  # Automatically refresh expired tokens
+)
+```
+
+#### OAuth Scopes and Permissions
+
+Validate OAuth scopes at the tool level:
+
+```python
+from nextmcp.auth import requires_scope_async
+
+@mcp.tool()
+@requires_auth_async(provider=google)
+@requires_scope_async("https://www.googleapis.com/auth/calendar")
+async def access_calendar(ctx: Context) -> dict:
+    """Requires Google Calendar scope."""
+    return {"calendar": "data"}
+```
+
+#### Auth Metadata Protocol
+
+The auth metadata protocol allows MCP servers to announce their authentication requirements to host applications (like Claude Desktop, Cursor, etc.):
+
+```python
+from nextmcp.protocol import AuthMetadata, AuthRequirement, AuthFlowType
+
+# Define authentication requirements
+auth_metadata = AuthMetadata(
+    requirement=AuthRequirement.REQUIRED,  # or OPTIONAL, NONE
+    flow_type=AuthFlowType.OAUTH,         # or API_KEY, JWT
+    provider_name="google",
+    scopes=["openid", "email", "profile"],
+    authorization_url="https://accounts.google.com/o/oauth2/v2/auth",
+    token_url="https://oauth2.googleapis.com/token"
+)
+
+# Expose to hosts via server metadata
+mcp.set_auth_metadata(auth_metadata)
+```
+
+Hosts can query this metadata to:
+- Determine if authentication is required
+- Identify the OAuth provider and flow type
+- Obtain authorization and token URLs
+- Request appropriate scopes
+- Guide users through authentication
+
+#### Custom OAuth Providers
+
+Create custom OAuth providers for other services:
+
+```python
+from nextmcp.auth import OAuthProvider, OAuthConfig
+
+class CustomOAuthProvider(OAuthProvider):
+    """Custom OAuth provider for your service."""
+
+    def __init__(self, client_id: str, client_secret: str):
+        config = OAuthConfig(
+            client_id=client_id,
+            client_secret=client_secret,
+            authorization_url="https://your-service.com/oauth/authorize",
+            token_url="https://your-service.com/oauth/token",
+            scopes=["read", "write"],
+            redirect_uri="http://localhost:8000/callback"
+        )
+        super().__init__(config)
+
+    async def get_user_info(self, access_token: str) -> dict:
+        """Fetch user information from your service."""
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                "https://your-service.com/api/user",
+                headers={"Authorization": f"Bearer {access_token}"}
+            ) as response:
+                return await response.json()
+```
+
+#### Testing OAuth Flows
+
+Use the provided helper to test OAuth flows interactively:
+
+```bash
+# Run the OAuth token helper
+python examples/auth/oauth_token_helper.py
+
+# Follow the interactive prompts to:
+# 1. Choose provider (GitHub or Google)
+# 2. Get authorization URL
+# 3. Complete OAuth flow
+# 4. Receive access token
+# 5. Test API calls with token
+```
+
+See the comprehensive OAuth documentation:
+- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** - System design and data flow
+- **[OAUTH_TESTING_SETUP.md](docs/OAUTH_TESTING_SETUP.md)** - Setting up OAuth credentials
+- **[MIGRATION_GUIDE.md](docs/MIGRATION_GUIDE.md)** - Adding auth to existing servers
+- **[HOST_INTEGRATION.md](docs/HOST_INTEGRATION.md)** - Guide for MCP host developers
+
 ### Examples
 
 Check out complete authentication examples:
 
+- **`examples/auth/complete_oauth_server.py`** - Production-ready Google OAuth with session management
+- **`examples/auth/github_oauth_server.py`** - GitHub OAuth authentication example
+- **`examples/auth/google_oauth_server.py`** - Google OAuth authentication example
+- **`examples/auth/multi_provider_server.py`** - Multiple OAuth providers in one server
+- **`examples/auth/session_management_example.py`** - Advanced session management workflows
+- **`examples/auth/combined_auth_server.py`** - OAuth combined with RBAC and permissions
+- **`examples/auth/manifest_server.py`** - Permission manifests with OAuth
+- **`examples/auth/oauth_token_helper.py`** - Interactive OAuth testing tool
 - **`examples/auth_api_key/`** - API key authentication with role-based access
 - **`examples/auth_jwt/`** - JWT token authentication with login endpoint
 - **`examples/auth_rbac/`** - Advanced RBAC with fine-grained permissions
@@ -2026,6 +2259,15 @@ Check out the `examples/` directory for complete working examples:
 
 - **blog_server** - Convention-based project structure with auto-discovery (5 tools, 3 prompts, 4 resources)
 - **security_validation** - Manifest validation examples showing secure vs insecure servers
+- **auth/** - OAuth 2.0 authentication examples:
+  - **complete_oauth_server.py** - Production-ready Google OAuth with session management
+  - **github_oauth_server.py** - GitHub OAuth authentication
+  - **google_oauth_server.py** - Google OAuth authentication
+  - **multi_provider_server.py** - Multiple OAuth providers in one server
+  - **session_management_example.py** - Advanced session management
+  - **combined_auth_server.py** - OAuth with RBAC and permissions
+  - **manifest_server.py** - Permission manifests with OAuth
+  - **oauth_token_helper.py** - Interactive OAuth testing tool
 - **auth_api_key** - API key authentication with role-based access control
 - **auth_jwt** - JWT token authentication with login endpoint and token generation
 - **auth_rbac** - Advanced RBAC with fine-grained permissions and wildcards
@@ -2128,6 +2370,10 @@ NextMCP builds on FastMCP to provide:
 | API key auth | ❌ | ✅ APIKeyProvider |
 | JWT auth | ❌ | ✅ JWTProvider |
 | Session auth | ❌ | ✅ SessionProvider |
+| OAuth 2.0 | ❌ | ✅ GitHub, Google, custom providers |
+| OAuth PKCE | ❌ | ✅ Built-in PKCE support |
+| Session management | ❌ | ✅ File and memory stores |
+| Auth metadata protocol | ❌ | ✅ Server auth announcements |
 | RBAC | ❌ | ✅ Full RBAC system |
 | Permission-based access | ❌ | ✅ Fine-grained permissions |
 | Async/await support | ❌ | ✅ Full support |
@@ -2150,6 +2396,7 @@ NextMCP builds on FastMCP to provide:
 - [x] **v0.3.0** - Convention-Based Architecture (Auto-discovery, `from_config()`, Project structure)
 - [x] **v0.4.0** - Authentication & Authorization (API keys, JWT, Sessions, RBAC)
 - [x] **v0.5.0** - Production Deployment (Health checks, Graceful shutdown, Docker, Cloud platforms)
+- [x] **v0.6.0** - OAuth 2.0 Authentication (GitHub/Google providers, PKCE, Session management, Auth metadata protocol)
 - [x] Async tool support
 - [x] WebSocket transport
 - [x] Plugin system
