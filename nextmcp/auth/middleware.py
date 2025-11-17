@@ -8,10 +8,13 @@ authentication and authorization requirements.
 import functools
 import logging
 from collections.abc import Callable
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from nextmcp.auth.core import AuthContext, AuthProvider
 from nextmcp.auth.rbac import PermissionDeniedError
+
+if TYPE_CHECKING:
+    from nextmcp.auth.manifest import PermissionManifest
 
 logger = logging.getLogger(__name__)
 
@@ -433,7 +436,6 @@ def requires_manifest_async(
             return "Admin action performed"
     """
     from nextmcp.auth.errors import ManifestViolationError
-    from nextmcp.auth.manifest import PermissionManifest
 
     def decorator(fn: Callable) -> Callable:
         @functools.wraps(fn)

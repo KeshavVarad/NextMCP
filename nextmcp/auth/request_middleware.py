@@ -9,7 +9,8 @@ This is the runtime enforcement layer that makes auth actually work in productio
 """
 
 import logging
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from nextmcp.auth.core import AuthContext, AuthProvider, AuthResult
 from nextmcp.auth.errors import AuthenticationError, AuthorizationError

@@ -299,7 +299,7 @@ class FileSessionStore(SessionStore):
                 return None
 
             try:
-                with open(path, "r") as f:
+                with open(path) as f:
                     data = json.load(f)
                 session = SessionData.from_dict(data)
                 logger.debug(f"Loaded session for user: {user_id}")
@@ -333,7 +333,7 @@ class FileSessionStore(SessionStore):
             users = []
             for path in self.directory.glob("session_*.json"):
                 try:
-                    with open(path, "r") as f:
+                    with open(path) as f:
                         data = json.load(f)
                         users.append(data["user_id"])
                 except Exception as e:
@@ -364,7 +364,7 @@ class FileSessionStore(SessionStore):
             count = 0
             for path in self.directory.glob("session_*.json"):
                 try:
-                    with open(path, "r") as f:
+                    with open(path) as f:
                         data = json.load(f)
                     session = SessionData.from_dict(data)
                     if session.is_expired():
