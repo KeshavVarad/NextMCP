@@ -8,13 +8,13 @@ authentication and authorization requirements.
 import functools
 import logging
 from collections.abc import Callable
-from typing import Any, TYPE_CHECKING
-
-from nextmcp.auth.core import AuthContext, AuthProvider
-from nextmcp.auth.rbac import PermissionDeniedError
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from nextmcp.auth.manifest import PermissionManifest
+
+from nextmcp.auth.core import AuthContext, AuthProvider
+from nextmcp.auth.rbac import PermissionDeniedError
 
 logger = logging.getLogger(__name__)
 
