@@ -17,10 +17,17 @@ def create_mock_aiohttp_response(status: int, json_data: dict | None = None, tex
     """Helper to create a properly mocked aiohttp response."""
     mock_response = AsyncMock()
     mock_response.status = status
+
+    # Set up headers - default to JSON if json_data is provided
+    headers = {}
     if json_data is not None:
+        headers["Content-Type"] = "application/json"
         mock_response.json = AsyncMock(return_value=json_data)
     if text_data:
+        headers["Content-Type"] = "application/x-www-form-urlencoded"
         mock_response.text = AsyncMock(return_value=text_data)
+
+    mock_response.headers = headers
     mock_response.__aenter__.return_value = mock_response
     # __aexit__ must return False/None to not suppress exceptions
     mock_response.__aexit__ = AsyncMock(return_value=False)

@@ -263,12 +263,12 @@ class TestGoogleOAuthIntegration:
         # Get user info using access token
         user_info = await provider.get_user_info(GOOGLE_ACCESS_TOKEN)
 
-        # Verify response structure (Google's userinfo endpoint)
-        assert "sub" in user_info  # Google user ID
+        # Verify response structure (Google's userinfo v2 endpoint)
+        assert "id" in user_info  # Google user ID (v2 endpoint uses 'id' not 'sub')
         assert "email" in user_info or "name" in user_info
 
         print(f"\n✓ Google user info retrieved successfully")
-        print(f"  User ID: {user_info.get('sub')}")
+        print(f"  User ID: {user_info.get('id')}")
         print(f"  Email: {user_info.get('email', 'N/A')}")
         print(f"  Name: {user_info.get('name', 'N/A')}")
         print(f"  Picture: {user_info.get('picture', 'N/A')[:50]}...")

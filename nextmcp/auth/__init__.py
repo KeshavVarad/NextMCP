@@ -19,6 +19,8 @@ from nextmcp.auth.core import (
     Role,
 )
 from nextmcp.auth.errors import (
+    AuthenticationError,
+    AuthorizationError,
     ManifestViolationError,
     OAuthRequiredError,
     ScopeInsufficientError,
@@ -33,6 +35,10 @@ from nextmcp.auth.middleware import (
     requires_role,
     requires_role_async,
     requires_scope_async,
+)
+from nextmcp.auth.request_middleware import (
+    AuthEnforcementMiddleware,
+    create_auth_middleware,
 )
 from nextmcp.auth.oauth import OAuthConfig, OAuthProvider, PKCEChallenge
 from nextmcp.auth.oauth_providers import GitHubOAuthProvider, GoogleOAuthProvider
@@ -51,6 +57,8 @@ __all__ = [
     "Permission",
     "Role",
     # Errors
+    "AuthenticationError",
+    "AuthorizationError",
     "OAuthRequiredError",
     "ScopeInsufficientError",
     "ManifestViolationError",
@@ -59,7 +67,7 @@ __all__ = [
     "PermissionManifest",
     "ScopeDefinition",
     "ToolPermission",
-    # Middleware
+    # Middleware (decorators)
     "requires_auth",
     "requires_auth_async",
     "requires_manifest_async",
@@ -68,6 +76,9 @@ __all__ = [
     "requires_role",
     "requires_role_async",
     "requires_scope_async",
+    # Request Middleware (runtime enforcement)
+    "AuthEnforcementMiddleware",
+    "create_auth_middleware",
     # Providers
     "APIKeyProvider",
     "JWTProvider",

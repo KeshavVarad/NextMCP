@@ -2,6 +2,8 @@
 Specialized authentication and authorization error types.
 
 This module provides clear, structured exceptions for different auth failure scenarios:
+- AuthenticationError: General authentication failure
+- AuthorizationError: General authorization failure
 - OAuthRequiredError: OAuth authentication is needed
 - ScopeInsufficientError: User lacks required OAuth scopes
 - ManifestViolationError: Permission manifest access check failed
@@ -10,6 +12,70 @@ This module provides clear, structured exceptions for different auth failure sce
 from typing import Any
 
 from nextmcp.auth.core import AuthContext
+
+
+class AuthenticationError(Exception):
+    """
+    Raised when authentication fails.
+
+    This is a general authentication error for any auth failure.
+
+    Attributes:
+        message: Human-readable error message
+        required_scopes: OAuth scopes required (optional)
+        providers: Available auth providers (optional)
+    """
+
+    def __init__(
+        self,
+        message: str,
+        required_scopes: list[str] | None = None,
+        providers: list[Any] | None = None,
+    ):
+        """
+        Initialize AuthenticationError.
+
+        Args:
+            message: Error message
+            required_scopes: Required OAuth scopes
+            providers: Available authentication providers
+        """
+        super().__init__(message)
+        self.message = message
+        self.required_scopes = required_scopes or []
+        self.providers = providers or []
+
+
+class AuthorizationError(Exception):
+    """
+    Raised when authorization fails.
+
+    This is a general authorization error for permission/access denials.
+
+    Attributes:
+        message: Human-readable error message
+        required: What was required for access
+        user_id: User ID who was denied
+    """
+
+    def __init__(
+        self,
+        message: str,
+        required: Any | None = None,
+        user_id: str | None = None,
+    ):
+        """
+        Initialize AuthorizationError.
+
+        Args:
+            message: Error message
+            required: Required permissions/scopes/roles
+            user_id: User ID
+        """
+        super().__init__(message)
+        self.message = message
+        self.required = required
+        self.user_id = user_id
 
 
 class OAuthRequiredError(Exception):

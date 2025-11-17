@@ -161,10 +161,25 @@ class OAuthProvider(AuthProvider, ABC):
         async with aiohttp.ClientSession() as session:
             async with session.post(self.config.token_url, data=data) as resp:
                 if resp.status != 200:
-                    error_data = await resp.json()
+                    # Try to get error details
+                    try:
+                        error_data = await resp.json()
+                    except Exception:
+                        error_data = await resp.text()
                     raise ValueError(f"Token exchange failed: {error_data}")
 
-                return await resp.json()
+                # GitHub returns form-encoded, Google returns JSON
+                content_type = resp.headers.get("Content-Type", "")
+                if "application/json" in content_type:
+                    return await resp.json()
+                else:
+                    # Parse form-encoded response (GitHub uses this)
+                    from urllib.parse import parse_qs
+
+                    text = await resp.text()
+                    parsed = parse_qs(text)
+                    # Convert lists to single values where appropriate
+                    return {k: v[0] if len(v) == 1 else v for k, v in parsed.items()}
 
     async def refresh_access_token(self, refresh_token: str) -> dict[str, Any]:
         """
@@ -193,10 +208,25 @@ class OAuthProvider(AuthProvider, ABC):
         async with aiohttp.ClientSession() as session:
             async with session.post(self.config.token_url, data=data) as resp:
                 if resp.status != 200:
-                    error_data = await resp.json()
+                    # Try to get error details
+                    try:
+                        error_data = await resp.json()
+                    except Exception:
+                        error_data = await resp.text()
                     raise ValueError(f"Token refresh failed: {error_data}")
 
-                return await resp.json()
+                # GitHub returns form-encoded, Google returns JSON
+                content_type = resp.headers.get("Content-Type", "")
+                if "application/json" in content_type:
+                    return await resp.json()
+                else:
+                    # Parse form-encoded response (GitHub uses this)
+                    from urllib.parse import parse_qs
+
+                    text = await resp.text()
+                    parsed = parse_qs(text)
+                    # Convert lists to single values where appropriate
+                    return {k: v[0] if len(v) == 1 else v for k, v in parsed.items()}
 
     @abstractmethod
     async def get_user_info(self, access_token: str) -> dict[str, Any]:
