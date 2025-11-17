@@ -36,10 +36,6 @@ from nextmcp.auth.middleware import (
     requires_role_async,
     requires_scope_async,
 )
-from nextmcp.auth.request_middleware import (
-    AuthEnforcementMiddleware,
-    create_auth_middleware,
-)
 from nextmcp.auth.oauth import OAuthConfig, OAuthProvider, PKCEChallenge
 from nextmcp.auth.oauth_providers import GitHubOAuthProvider, GoogleOAuthProvider
 from nextmcp.auth.providers import (
@@ -48,6 +44,10 @@ from nextmcp.auth.providers import (
     SessionProvider,
 )
 from nextmcp.auth.rbac import RBAC, PermissionDeniedError
+from nextmcp.auth.request_middleware import (
+    AuthEnforcementMiddleware,
+    create_auth_middleware,
+)
 
 __all__ = [
     # Core
